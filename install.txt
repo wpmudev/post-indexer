@@ -1,0 +1,12 @@
+Plugin Name: Post Indexer
+Author: Andrew Billits (Incsub)
+
+Files:
+----------------------------------------------------------------------
+post-indexer.php - goes in /wp-content/mu-plugins
+
+Instructions:
+----------------------------------------------------------------------
+1) Place the files in the specified directories
+2) If the auto-install does not add the db table(s) for you then run the sql code in "sql.txt" on your wpmu db
+3) There are a few config options at the top of post-indexer.php. Unless your in a very solid dedicated environment we recommend leaving them as is.

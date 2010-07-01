@@ -1,0 +1,30 @@
+CREATE TABLE IF NOT EXISTS `wp_site_posts` (
+  `site_post_id` bigint(20) unsigned NOT NULL auto_increment,
+  `blog_id` bigint(20),
+  `site_id` bigint(20),
+  `sort_terms` TEXT,
+  `blog_public` int(2),
+  `post_id` bigint(20),
+  `post_author` bigint(20),
+  `post_title` TEXT,
+  `post_content` TEXT,
+  `post_content_stripped` TEXT,
+  `post_terms` TEXT,
+  `post_hits` bigint(20) NOT NULL default '0',
+  `post_popularity_score` VARCHAR(255) NOT NULL default '0',
+  `post_permalink` TEXT,
+  `post_published_gmt` datetime NOT NULL default '0000-00-00 00:00:00',
+  `post_published_stamp` VARCHAR(255),
+  `post_modified_gmt` datetime NOT NULL default '0000-00-00 00:00:00',
+  `post_modified_stamp` VARCHAR(255),
+  PRIMARY KEY  (`site_post_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `wp_term_counts` (
+  `term_count_id` bigint(20) unsigned NOT NULL auto_increment,
+  `term_id` bigint(20),
+  `term_count_type` TEXT,
+  `term_count_updated` datetime NOT NULL default '0000-00-00 00:00:00',
+  `term_count` bigint(20),
+  PRIMARY KEY  (`term_count_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
