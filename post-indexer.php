@@ -4,9 +4,10 @@ Plugin Name: Post Indexer
 Plugin URI:
 Description:
 Author: Andrew Billits (Incsub)
-Version: 2.0
+Version: 2.1
 Author URI:
 WDP ID: 30
+Network: true
 */
 
 /*
