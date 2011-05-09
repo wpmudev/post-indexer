@@ -27,7 +27,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-$post_indexer_current_version = '2.0';
+$post_indexer_current_version = '2.1';
 //------------------------------------------------------------------------//
 //---Config---------------------------------------------------------------//
 //------------------------------------------------------------------------//
@@ -102,27 +102,39 @@ function post_indexer_global_install() {
 
 	if (get_site_option( "post_indexer_installed" ) == "yes") {
 		// do nothing
+		$sql = "SHOW COLUMNS FROM " . $wpdb->base_prefix . "site_posts;";
+		$cols = $wpdb->get_col( $sql );
+		if(!in_array('post_type', $cols)) {
+			$sql = "ALTER TABLE " . $wpdb->base_prefix . "site_posts ADD post_type varchar(20) NULL DEFAULT 'post'  AFTER post_modified_stamp";
+			$sql2 = "ALTER TABLE " . $wpdb->base_prefix . "site_posts ADD INDEX  (post_type);";
+
+			$wpdb->query( $sql );
+			$wpdb->query( $sql2 );
+		}
 	} else {
 
 		$post_indexer_table1 = "CREATE TABLE IF NOT EXISTS `" . $wpdb->base_prefix . "site_posts` (
-  `site_post_id` bigint(20) unsigned NOT NULL auto_increment,
-  `blog_id` bigint(20),
-  `site_id` bigint(20),
-  `sort_terms` TEXT,
-  `blog_public` int(2),
-  `post_id` bigint(20),
-  `post_author` bigint(20),
-  `post_title` TEXT,
-  `post_content` TEXT,
-  `post_content_stripped` TEXT,
-  `post_terms` TEXT,
-  `post_permalink` TEXT,
-  `post_published_gmt` datetime NOT NULL default '0000-00-00 00:00:00',
-  `post_published_stamp` VARCHAR(255),
-  `post_modified_gmt` datetime NOT NULL default '0000-00-00 00:00:00',
-  `post_modified_stamp` VARCHAR(255),
-  PRIMARY KEY  (`site_post_id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8;";
+		  `site_post_id` bigint(20) unsigned NOT NULL auto_increment,
+		  `blog_id` bigint(20) default NULL,
+		  `site_id` bigint(20) default NULL,
+		  `sort_terms` text,
+		  `blog_public` int(2) default NULL,
+		  `post_id` bigint(20) default NULL,
+		  `post_author` bigint(20) default NULL,
+		  `post_title` text,
+		  `post_content` text,
+		  `post_content_stripped` text,
+		  `post_terms` text,
+		  `post_permalink` text,
+		  `post_published_gmt` datetime NOT NULL default '0000-00-00 00:00:00',
+		  `post_published_stamp` varchar(255) default NULL,
+		  `post_modified_gmt` datetime NOT NULL default '0000-00-00 00:00:00',
+		  `post_modified_stamp` varchar(255) default NULL,
+		  `post_type` varchar(20) default 'post',
+		  PRIMARY KEY  (`site_post_id`),
+		  KEY `post_type` (`post_type`)
+		) ENGINE=MyISAM  DEFAULT CHARSET=utf8;";
+
 		$post_indexer_table2 = "CREATE TABLE IF NOT EXISTS `" . $wpdb->base_prefix . "term_counts` (
   `term_count_id` bigint(20) unsigned NOT NULL auto_increment,
   `term_id` bigint(20),
@@ -233,9 +245,9 @@ function post_indexer_post_insert_update($tmp_post_ID){
 		$tmp_sort_terms = post_indexer_get_sort_terms($wpdb->blogid);
 		//post does not exist - insert site post
 		$wpdb->query("INSERT IGNORE INTO " . $wpdb->base_prefix . "site_posts
-		(post_id, blog_id, site_id, sort_terms, post_author, post_title, post_content, post_content_stripped, post_permalink, post_published_gmt, post_published_stamp, post_modified_gmt, post_modified_stamp, post_terms, blog_public)
+		(post_id, blog_id, site_id, sort_terms, post_author, post_title, post_content, post_content_stripped, post_permalink, post_published_gmt, post_published_stamp, post_modified_gmt, post_modified_stamp, post_terms, blog_public, post_type)
 		VALUES
-		('" . $tmp_post_ID . "','" . $wpdb->blogid . "','" . $wpdb->siteid . "','" . $tmp_sort_terms . "','" . $tmp_post->post_author . "','" . addslashes($tmp_post->post_title) . "','" . addslashes($tmp_post->post_content) . "','" . addslashes(post_indexer_strip_content($tmp_post->post_content)) . "','" . get_permalink($tmp_post_ID) . "','" . $tmp_post->post_date_gmt . "','" . strtotime($tmp_post->post_date_gmt) . "','" . $tmp_post->post_modified_gmt . "','" . time() . "','" . $tmp_post_terms . "','" . $tmp_blog_public . "')");
+		('" . $tmp_post_ID . "','" . $wpdb->blogid . "','" . $wpdb->siteid . "','" . $tmp_sort_terms . "','" . $tmp_post->post_author . "','" . addslashes($tmp_post->post_title) . "','" . addslashes($tmp_post->post_content) . "','" . addslashes(post_indexer_strip_content($tmp_post->post_content)) . "','" . get_permalink($tmp_post_ID) . "','" . $tmp_post->post_date_gmt . "','" . strtotime($tmp_post->post_date_gmt) . "','" . $tmp_post->post_modified_gmt . "','" . time() . "','" . $tmp_post_terms . "','" . $tmp_blog_public . "','" . $tmp_post->post_type . "'")");
 
 		$site_post_id = $wpdb->insert_id;
 
