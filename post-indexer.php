@@ -201,6 +201,24 @@ function post_indexer_get_sort_terms($tmp_blog_ID){
 
 }
 
+function post_indexer_public( $post_type ) {
+
+	global $wp_post_types;
+
+	if(!empty($wp_post_types[$post_type])) {
+
+		if(!empty($wp_post_types[$post_type]->publicly_queryable) && $wp_post_types[$post_type]->publicly_queryable) {
+			return true;
+		} else {
+			return false;
+		}
+
+	} else {
+		return false;
+	}
+
+}
+
 function post_indexer_post_insert_update($tmp_post_ID){
 	global $wpdb, $current_site;
 
@@ -230,6 +248,8 @@ function post_indexer_post_insert_update($tmp_post_ID){
 		post_indexer_delete($tmp_post_ID);
 	} else if ($tmp_post->post_content == ''){
 		post_indexer_delete($tmp_post_ID);
+	} else if ( !post_indexer_public( $tmp_post->post_type ) ) {
+		post_indexer_delete($tmp_post_ID);
 	} else {
 		//delete post
 		post_indexer_delete($tmp_post_ID);
@@ -247,7 +267,7 @@ function post_indexer_post_insert_update($tmp_post_ID){
 		$wpdb->query("INSERT IGNORE INTO " . $wpdb->base_prefix . "site_posts
 		(post_id, blog_id, site_id, sort_terms, post_author, post_title, post_content, post_content_stripped, post_permalink, post_published_gmt, post_published_stamp, post_modified_gmt, post_modified_stamp, post_terms, blog_public, post_type)
 		VALUES
-		('" . $tmp_post_ID . "','" . $wpdb->blogid . "','" . $wpdb->siteid . "','" . $tmp_sort_terms . "','" . $tmp_post->post_author . "','" . addslashes($tmp_post->post_title) . "','" . addslashes($tmp_post->post_content) . "','" . addslashes(post_indexer_strip_content($tmp_post->post_content)) . "','" . get_permalink($tmp_post_ID) . "','" . $tmp_post->post_date_gmt . "','" . strtotime($tmp_post->post_date_gmt) . "','" . $tmp_post->post_modified_gmt . "','" . time() . "','" . $tmp_post_terms . "','" . $tmp_blog_public . "','" . $tmp_post->post_type . "'")");
+		('" . $tmp_post_ID . "','" . $wpdb->blogid . "','" . $wpdb->siteid . "','" . $tmp_sort_terms . "','" . $tmp_post->post_author . "','" . addslashes($tmp_post->post_title) . "','" . addslashes($tmp_post->post_content) . "','" . addslashes(post_indexer_strip_content($tmp_post->post_content)) . "','" . get_permalink($tmp_post_ID) . "','" . $tmp_post->post_date_gmt . "','" . strtotime($tmp_post->post_date_gmt) . "','" . $tmp_post->post_modified_gmt . "','" . time() . "','" . $tmp_post_terms . "','" . $tmp_blog_public . "','" . $tmp_post->post_type . "')");
 
 		$site_post_id = $wpdb->insert_id;
 
