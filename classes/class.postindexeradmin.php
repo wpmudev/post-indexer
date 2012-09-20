@@ -47,10 +47,17 @@ if(!class_exists('postindexeradmin')) {
 				$this->build_indexer_tables( $version );
 			}
 
+			// Add settings menu action
+			add_action('network_admin_menu', array( &$this, 'add_admin_page' ) );
 
-			if ($_GET['key'] == '' || $_GET['key'] === ''){
-				add_action('admin_head', array( &$this, 'post_indexer_make_current') );
-			}
+			add_action('load-settings_page_postindexer', array(&$this, 'add_header_postindexer_page'));
+			//settings_page_postindexer
+
+			// Sites page integration
+			add_filter('wpmu_blogs_columns', array(&$this, 'add_sites_column_heading'), 99 );
+			add_action( 'manage_sites_custom_column', array(&$this, 'add_sites_column_data'), 99, 2 );
+			add_action( 'wp_ajax_editsitepostindexer', array(&$this, 'edit_site_postindexer') );
+			add_action('admin_enqueue_scripts', array(&$this, 'add_header_sites_page'));
 
 			//index posts
 			add_action('save_post', array(&$this, 'post_indexer_post_insert_update') );
@@ -74,6 +81,130 @@ if(!class_exists('postindexeradmin')) {
 		//------------------------------------------------------------------------//
 		//---Functions------------------------------------------------------------//
 		//------------------------------------------------------------------------//
+
+		function add_header_sites_page( $hook_suffix ) {
+			if($hook_suffix == 'sites.php') {
+				wp_enqueue_script('thickbox');
+
+				wp_register_script('pi-sites-post-indexer', WP_PLUGIN_URL . '/post-indexer/js/sites.postindexer.js', array('jquery', 'thickbox'));
+				wp_enqueue_script('pi-sites-post-indexer');
+
+				wp_localize_script('pi-sites-post-indexer', 'postindexer', array( 'siteedittitle'	=>	__('Post Indexer Settings','postindexer')
+																												));
+
+				wp_enqueue_style('thickbox');
+			}
+		}
+
+		function add_sites_column_heading( $columns ) {
+
+			$columns['postindexer'] = __('Indexing','postindexer');
+
+			return $columns;
+		}
+
+		function add_sites_column_data( $column_name, $blog_id ) {
+
+			global $page_hook;
+
+			echo $page_hook;
+
+			if($column_name == 'postindexer') {
+				$indexing = get_blog_option( $blog_id, 'postindexer_active', true );
+				if( $indexing === true ) {
+					$posttypes = get_blog_option( $blog_id, 'postindexer_posttypes', array( 'post' ) );
+					echo implode( '<br/>', $posttypes );
+					?>
+					<div class="row-actions">
+						<span class="disable">
+							<a class='postindexersitedisablelink' href='<?php echo wp_nonce_url( admin_url("admin-ajax.php?action=editsitepostindexer&amp;blog_id=" . $blog_id . ""), 'disable_site_postindexer_' . $blog_id); ?>'><?php _e('Disable','postindexer'); ?></a>
+						</span> |
+						<span class="edit">
+							<a class='postindexersiteeditlink' href='<?php echo wp_nonce_url( admin_url("admin-ajax.php?action=editsitepostindexer&amp;blog_id=" . $blog_id . ""), 'edit_site_postindexer_' . $blog_id); ?>'><?php _e('Edit','postindexer'); ?></a>
+						</span> |
+						<span class="rebuild">
+							<a class='postindexersiterebuildlink' href='<?php echo wp_nonce_url( admin_url("admin-ajax.php?action=editsitepostindexer&amp;blog_id=" . $blog_id . ""), 'rebuild_site_postindexer_' . $blog_id); ?>'><?php _e('Rebuild','postindexer'); ?></a>
+						</span>
+					</div>
+					<?php
+				} else {
+					_e('Not Indexing', 'postindexer');
+					?>
+					<div class="row-actions">
+						<span class="enable">
+							<a class='postindexersiteenablelink' href='<?php echo wp_nonce_url( admin_url("admin-ajax.php?action=editsitepostindexer&amp;blog_id=" . $blog_id . ""), 'enable_site_postindexer_' . $blog_id); ?>'><?php _e('Enable','postindexer'); ?></a>
+						</span>
+					</div>
+					<?php
+				}
+			}
+
+		}
+
+		function edit_site_postindexer() {
+			echo "here";
+			exit;
+		}
+
+		function add_admin_page() {
+			$hook = add_submenu_page( 'settings.php', __('Post Indexer', 'postindexer'), __('Post Indexer', 'postindexer'), 'manage_options', 'postindexer', array( &$this, 'handle_postindexer_page') );
+		}
+
+		function add_header_postindexer_page() {
+			 $this->process_postindexer_page();
+		}
+
+		function process_postindexer_page() {
+
+		}
+
+		function handle_postindexer_page() {
+			?>
+			<div class="wrap">
+				<div id="icon-edit" class="icon32 icon32-posts-post"><br></div>
+				<h2><?php _e('Post Indexer Options','postindexer'); ?></h2>
+
+				<form action='' method='post'>
+
+					<h3><?php _e('Rebuild Network Post Index','postindexer'); ?></h3>
+					<p class='description'><?php _e('You can rebuild the Post Index by clicking on the <strong>Rebuild Index</strong> button below.','postindexer'); ?></p>
+					<p class='description'><?php _e("Note: This may take a considerable amount of time and could impact the performance of your server.",'postindexer'); ?></p>
+
+					<p class="submit">
+						<input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Rebuild Index','postindexer'); ?>" />
+					</p>
+
+					<table class="form-table">
+								<tbody><tr valign="top">
+									<th scope="row"><label for="site_name">Network Name</label></th>
+									<td>
+										<input type="text" value="My Network Sites" class="regular-text" id="site_name" name="site_name">
+										<br>
+										What you would like to call this network.				</td>
+								</tr>
+
+								<tr valign="top">
+									<th scope="row"><label for="admin_email">Network Admin Email</label></th>
+									<td>
+										<input type="text" value="barry@mapinated.com" class="regular-text" id="admin_email" name="admin_email">
+										<br>
+										Registration and support emails will come from this address. An address such as <code>support@dev.site</code> is recommended.				</td>
+								</tr>
+							</tbody></table>
+
+					<?php
+						do_action( 'postindexer_options_page' );
+					?>
+
+					<p class="submit">
+						<input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Save Changes','membership'); ?>" />
+					</p>
+
+				</form>
+
+			</div>
+			<?php
+		}
 
 		function build_indexer_tables( $old_version ) {
 
@@ -626,4 +757,6 @@ if(!class_exists('postindexeradmin')) {
 	}
 
 }
+
+$postindexeradmin = new postindexeradmin();
 ?>
