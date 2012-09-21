@@ -179,10 +179,6 @@ if(!class_exists('postindexeradmin')) {
 
 		function add_sites_column_data( $column_name, $blog_id ) {
 
-			global $page_hook;
-
-			echo $page_hook;
-
 			if($column_name == 'postindexer') {
 				$indexing = get_blog_option( $blog_id, 'postindexer_active', 'yes' );
 				if( $indexing == 'yes' ) {
@@ -234,7 +230,7 @@ if(!class_exists('postindexeradmin')) {
 
 				case 'postindexerrebuildallsites':	check_admin_referer('postindexer_rebuild_all_sites');
 													$this->rebuild_all_blogs();
-													wp_safe_redirect( add_query_arg( array( 'updated' => 'true' ), wp_get_referer() ) );
+													wp_safe_redirect( add_query_arg( array( 'msg' => 1 ), wp_get_referer() ) );
 													exit;
 													break;
 
@@ -243,10 +239,32 @@ if(!class_exists('postindexeradmin')) {
 		}
 
 		function handle_postindexer_page() {
+
+			$messages = array();
+			$messages[1] = __('Rebuilding of the Post Index has been scheduled.','postindexer');
+
 			?>
 			<div class="wrap">
 				<div id="icon-edit" class="icon32 icon32-posts-post"><br></div>
 				<h2><?php _e('Post Indexer Options','postindexer'); ?></h2>
+
+				<?php
+				if($this->blogs_for_rebuilding()) {
+					// Show a rebuilding message and timer
+					?>
+					<div id='rebuildingmessage'>
+					Boo
+					</div>
+					<?php
+				}
+				?>
+
+				<?php
+				if ( isset($_GET['msg']) ) {
+					echo '<div id="message" class="updated fade"><p>' . $messages[(int) $_GET['msg']] . '</p></div>';
+					$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+				}
+				?>
 
 				<form action='' method='post'>
 
@@ -854,6 +872,18 @@ if(!class_exists('postindexeradmin')) {
 			$content = strip_tags($content);
 			$content = apply_filters( 'post_indexer_strip_content_filter', $content );
 			return $content;
+		}
+
+		function blogs_for_rebuilding() {
+			$sql = $sql = $this->db->prepare( "SELECT count(*) as rebuildblogs FROM {$this->network_rebuildqueue}" );
+
+			$var = $this->db->get_var( $sql );
+
+			if(empty($var) || $var == 0) {
+				return false;
+			} else {
+				return true;
+			}
 		}
 
 		function rebuild_blog( $blog_id ) {
