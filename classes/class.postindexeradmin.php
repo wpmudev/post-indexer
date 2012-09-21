@@ -9,7 +9,7 @@ if(!class_exists('postindexeradmin')) {
 
 		// tables list
 		var $oldtables =  array( 'site_posts', 'term_counts', 'site_terms', 'site_term_relationships' );
-		var $tables = array( 'network_posts' );
+		var $tables = array( 'network_posts', 'network_rebuildqueue' );
 
 		// old table variables
 		var $site_posts;
@@ -19,6 +19,7 @@ if(!class_exists('postindexeradmin')) {
 
 		// new table variables
 		var $network_posts;
+		var $network_rebuildqueue;
 
 		function postindexeradmin() {
 			$this->__construct();
@@ -54,10 +55,10 @@ if(!class_exists('postindexeradmin')) {
 			//settings_page_postindexer
 
 			// Sites page integration
-			add_filter('wpmu_blogs_columns', array(&$this, 'add_sites_column_heading'), 99 );
+			add_filter( 'wpmu_blogs_columns', array(&$this, 'add_sites_column_heading'), 99 );
 			add_action( 'manage_sites_custom_column', array(&$this, 'add_sites_column_data'), 99, 2 );
 			add_action( 'wp_ajax_editsitepostindexer', array(&$this, 'edit_site_postindexer') );
-			add_action('admin_enqueue_scripts', array(&$this, 'add_header_sites_page'));
+			add_action( 'admin_enqueue_scripts', array(&$this, 'add_header_sites_page'));
 			add_action( 'wpmuadminedit' , array(&$this, 'process_sites_page'));
 			// Sites update settings
 			add_filter( 'network_sites_updated_message_disableindexing' , array(&$this, 'output_msg_sites_page') );
@@ -68,21 +69,21 @@ if(!class_exists('postindexeradmin')) {
 			add_filter( 'network_sites_updated_message_not_rebuildindexing' , array(&$this, 'output_msg_sites_page') );
 
 			//index posts
-			add_action('save_post', array(&$this, 'post_indexer_post_insert_update') );
-			add_action('delete_post', array( &$this, 'post_indexer_delete') );
+			//add_action('save_post', array(&$this, 'post_indexer_post_insert_update') );
+			//add_action('delete_post', array( &$this, 'post_indexer_delete') );
 			//handle blog changes
-			add_action('make_spam_blog', array( &$this, 'post_indexer_change_remove') );
-			add_action('archive_blog', array( &$this, 'post_indexer_change_remove') );
-			add_action('mature_blog', array( &$this, 'post_indexer_change_remove') );
-			add_action('deactivate_blog', array( &$this, 'post_indexer_change_remove') );
-			add_action('blog_privacy_selector', array( &$this, 'post_indexer_public_update') );
-			add_action('delete_blog', array( &$this, 'post_indexer_change_remove'), 10, 1);
+			//add_action('make_spam_blog', array( &$this, 'post_indexer_change_remove') );
+			//add_action('archive_blog', array( &$this, 'post_indexer_change_remove') );
+			//add_action('mature_blog', array( &$this, 'post_indexer_change_remove') );
+			//add_action('deactivate_blog', array( &$this, 'post_indexer_change_remove') );
+			//add_action('blog_privacy_selector', array( &$this, 'post_indexer_public_update') );
+			//add_action('delete_blog', array( &$this, 'post_indexer_change_remove'), 10, 1);
 			//update blog types
-			add_action('blog_types_update', array( &$this, 'post_indexer_sort_terms_update') );
-			if ($post_indexer_enable_hit_tracking == '1') {
-				add_filter('the_content', array( &$this, 'post_indexer_hit_tracking') );
-				add_filter('the_excerpt', array( &$this, 'post_indexer_hit_tracking') );
-			}
+			//add_action('blog_types_update', array( &$this, 'post_indexer_sort_terms_update') );
+			//if ($post_indexer_enable_hit_tracking == '1') {
+			//	add_filter('the_content', array( &$this, 'post_indexer_hit_tracking') );
+		//		add_filter('the_excerpt', array( &$this, 'post_indexer_hit_tracking') );
+		// 	}
 
 		}
 
@@ -151,7 +152,21 @@ if(!class_exists('postindexeradmin')) {
 												}
 												break;
 				case 'editsitepostindexer':
-				case 'rebuildsitepostindexer':
+												break;
+
+				case 'rebuildsitepostindexer':	$blog_id = $_GET['blog_id'];
+												check_admin_referer('rebuild_site_postindexer_' . $blog_id);
+												if ( !current_user_can( 'manage_sites' ) )
+													wp_die( __( 'You do not have permission to access this page.' ) );
+
+												if ( $blog_id != '0' ) {
+													$this->rebuild_blog( $blog_id );
+													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'rebuildindexing' ), wp_get_referer() ) );
+												} else {
+													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_rebuildindexing' ), wp_get_referer() ) );
+												}
+												break;
+
 			}
 		}
 
@@ -272,7 +287,7 @@ if(!class_exists('postindexeradmin')) {
 				case 1:
 							break;
 
-				default:	$sql = "CREATE TABLE `" . $this->network_posts . "` (
+				default:	$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_posts . "` (
 							  `BLOG_ID` bigint(20) unsigned NOT NULL DEFAULT '0',
 							  `ID` bigint(20) unsigned NOT NULL,
 							  `post_author` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -303,6 +318,18 @@ if(!class_exists('postindexeradmin')) {
 							  KEY `post_parent` (`post_parent`),
 							  KEY `post_author` (`post_author`)
 							) DEFAULT CHARSET=utf8;";
+
+							$this->db->query( $sql );
+
+							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_rebuildqueue . "` (
+							  `blog_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+							  `rebuild_startdate` timestamp NULL DEFAULT NULL,
+							  `rebuild_progress` bigint(20) unsigned DEFAULT NULL,
+							  PRIMARY KEY (`blog_id`)
+							) DEFAULT CHARSET=utf8;";
+
+							$this->db->query( $sql );
+
 							break;
 			}
 
@@ -810,6 +837,53 @@ if(!class_exists('postindexeradmin')) {
 			$content = strip_tags($content);
 			$content = apply_filters( 'post_indexer_strip_content_filter', $content );
 			return $content;
+		}
+
+		function rebuild_blog( $blog_id ) {
+
+			$this->insert_or_update( $this->network_rebuildqueue, array( 'blog_id' => $blog_id, 'rebuild_startdate' => current_time('mysql'), 'rebuild_progress' => 0 ) );
+
+		}
+
+		function rebuild_all_blogs( $blog_id ) {
+
+		}
+
+		function is_in_rebuild_queue( $blog_id ) {
+
+			$sql = $this->db->prepare( "SELECT * FROM {$this->network_rebuildqueue} WHERE blog_id = %d", $blog_id );
+
+			$row = $this->db->get_row( $sql );
+
+			if( !empty($row) && $row->blog_id == $blog_id ) {
+				return true;
+			} else {
+				return false;
+			}
+
+		}
+
+		// Insert on duplicate update function
+		function insert_or_update( $table, $query ) {
+
+				$fields = array_keys($query);
+				$formatted_fields = array();
+				foreach ( $fields as $field ) {
+					$form = '%s';
+					$formatted_fields[] = $form;
+				}
+				$sql = "INSERT INTO `$table` (`" . implode( '`,`', $fields ) . "`) VALUES ('" . implode( "','", $formatted_fields ) . "')";
+				$sql .= " ON DUPLICATE KEY UPDATE ";
+
+				$dup = array();
+				foreach($fields as $field) {
+					$dup[] = "`" . $field . "` = VALUES(`" . $field . "`)";
+				}
+
+				$sql .= implode(',', $dup);
+
+				return $this->db->query( $this->db->prepare( $sql, $query ) );
+
 		}
 
 
