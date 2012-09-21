@@ -58,6 +58,14 @@ if(!class_exists('postindexeradmin')) {
 			add_action( 'manage_sites_custom_column', array(&$this, 'add_sites_column_data'), 99, 2 );
 			add_action( 'wp_ajax_editsitepostindexer', array(&$this, 'edit_site_postindexer') );
 			add_action('admin_enqueue_scripts', array(&$this, 'add_header_sites_page'));
+			add_action( 'wpmuadminedit' , array(&$this, 'process_sites_page'));
+			// Sites update settings
+			add_filter( 'network_sites_updated_message_disableindexing' , array(&$this, 'output_msg_sites_page') );
+			add_filter( 'network_sites_updated_message_not_disableindexing' , array(&$this, 'output_msg_sites_page') );
+			add_filter( 'network_sites_updated_message_enableindexing' , array(&$this, 'output_msg_sites_page') );
+			add_filter( 'network_sites_updated_message_not_enableindexing' , array(&$this, 'output_msg_sites_page') );
+			add_filter( 'network_sites_updated_message_rebuildindexing' , array(&$this, 'output_msg_sites_page') );
+			add_filter( 'network_sites_updated_message_not_rebuildindexing' , array(&$this, 'output_msg_sites_page') );
 
 			//index posts
 			add_action('save_post', array(&$this, 'post_indexer_post_insert_update') );
@@ -96,6 +104,57 @@ if(!class_exists('postindexeradmin')) {
 			}
 		}
 
+		function output_msg_sites_page( $msg ) {
+			switch( $_GET['action'] ) {
+				case 'disableindexing':			$msg = __('Indexing disabled for the requested site.','postindexer');
+												break;
+				case 'not_disableindexing':		$msg = __('Indexing could not be disabled for the requested site.','postindexer');
+												break;
+				case 'enableindexing':			$msg = __('Indexing enabled for the requested site.','postindexer');
+												break;
+				case 'not_enableindexing':		$msg = __('Indexing could not be enabled for the requested site.','postindexer');
+												break;
+				case 'rebuildindexing':			$msg = __('Index scheduled for rebuilding for the requested site.','postindexer');
+												break;
+				case 'not_rebuildindexing':		$msg = __('Index could not be scheduled for rebuilding for the requested site.','postindexer');
+												break;
+			}
+
+			return $msg;
+		}
+
+		function process_sites_page() {
+			switch($_GET['action']) {
+				case 'disablesitepostindexer':	$blog_id = $_GET['blog_id'];
+												check_admin_referer('disable_site_postindexer_' . $blog_id);
+												if ( !current_user_can( 'manage_sites' ) )
+													wp_die( __( 'You do not have permission to access this page.' ) );
+
+												if ( $blog_id != '0' ) {
+													update_blog_option( $blog_id, 'postindexer_active', 'no' );
+													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'disableindexing' ), wp_get_referer() ) );
+												} else {
+													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_disableindexing' ), wp_get_referer() ) );
+												}
+												break;
+
+				case 'enablesitepostindexer':	$blog_id = $_GET['blog_id'];
+												check_admin_referer('enable_site_postindexer_' . $blog_id);
+												if ( !current_user_can( 'manage_sites' ) )
+													wp_die( __( 'You do not have permission to access this page.' ) );
+
+												if ( $blog_id != '0' ) {
+													update_blog_option( $blog_id, 'postindexer_active', 'yes' );
+													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'enableindexing' ), wp_get_referer() ) );
+												} else {
+													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_enableindexing' ), wp_get_referer() ) );
+												}
+												break;
+				case 'editsitepostindexer':
+				case 'rebuildsitepostindexer':
+			}
+		}
+
 		function add_sites_column_heading( $columns ) {
 
 			$columns['postindexer'] = __('Indexing','postindexer');
@@ -110,20 +169,20 @@ if(!class_exists('postindexeradmin')) {
 			echo $page_hook;
 
 			if($column_name == 'postindexer') {
-				$indexing = get_blog_option( $blog_id, 'postindexer_active', true );
-				if( $indexing === true ) {
+				$indexing = get_blog_option( $blog_id, 'postindexer_active', 'yes' );
+				if( $indexing == 'yes' ) {
 					$posttypes = get_blog_option( $blog_id, 'postindexer_posttypes', array( 'post' ) );
 					echo implode( '<br/>', $posttypes );
 					?>
 					<div class="row-actions">
 						<span class="disable">
-							<a class='postindexersitedisablelink' href='<?php echo wp_nonce_url( admin_url("admin-ajax.php?action=editsitepostindexer&amp;blog_id=" . $blog_id . ""), 'disable_site_postindexer_' . $blog_id); ?>'><?php _e('Disable','postindexer'); ?></a>
+							<a class='postindexersitedisablelink' href='<?php echo wp_nonce_url( network_admin_url("sites.php?action=disablesitepostindexer&amp;blog_id=" . $blog_id . ""), 'disable_site_postindexer_' . $blog_id); ?>'><?php _e('Disable','postindexer'); ?></a>
 						</span> |
 						<span class="edit">
 							<a class='postindexersiteeditlink' href='<?php echo wp_nonce_url( admin_url("admin-ajax.php?action=editsitepostindexer&amp;blog_id=" . $blog_id . ""), 'edit_site_postindexer_' . $blog_id); ?>'><?php _e('Edit','postindexer'); ?></a>
 						</span> |
 						<span class="rebuild">
-							<a class='postindexersiterebuildlink' href='<?php echo wp_nonce_url( admin_url("admin-ajax.php?action=editsitepostindexer&amp;blog_id=" . $blog_id . ""), 'rebuild_site_postindexer_' . $blog_id); ?>'><?php _e('Rebuild','postindexer'); ?></a>
+							<a class='postindexersiterebuildlink' href='<?php echo wp_nonce_url( network_admin_url("sites.php?action=rebuildsitepostindexer&amp;blog_id=" . $blog_id . ""), 'rebuild_site_postindexer_' . $blog_id); ?>'><?php _e('Rebuild','postindexer'); ?></a>
 						</span>
 					</div>
 					<?php
@@ -132,7 +191,7 @@ if(!class_exists('postindexeradmin')) {
 					?>
 					<div class="row-actions">
 						<span class="enable">
-							<a class='postindexersiteenablelink' href='<?php echo wp_nonce_url( admin_url("admin-ajax.php?action=editsitepostindexer&amp;blog_id=" . $blog_id . ""), 'enable_site_postindexer_' . $blog_id); ?>'><?php _e('Enable','postindexer'); ?></a>
+							<a class='postindexersiteenablelink' href='<?php echo wp_nonce_url( network_admin_url("sites.php?action=enablesitepostindexer&amp;blog_id=" . $blog_id . ""), 'enable_site_postindexer_' . $blog_id); ?>'><?php _e('Enable','postindexer'); ?></a>
 						</span>
 					</div>
 					<?php
