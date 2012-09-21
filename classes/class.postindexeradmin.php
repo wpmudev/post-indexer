@@ -230,6 +230,16 @@ if(!class_exists('postindexeradmin')) {
 
 		function process_postindexer_page() {
 
+			switch($_POST['action']) {
+
+				case 'postindexerrebuildallsites':	check_admin_referer('postindexer_rebuild_all_sites');
+													$this->rebuild_all_blogs();
+													wp_safe_redirect( add_query_arg( array( 'updated' => 'true' ), wp_get_referer() ) );
+													exit;
+													break;
+
+			}
+
 		}
 
 		function handle_postindexer_page() {
@@ -240,6 +250,11 @@ if(!class_exists('postindexeradmin')) {
 
 				<form action='' method='post'>
 
+					<input type='hidden' name='action' value='postindexerrebuildallsites' />
+					<?php
+						wp_nonce_field('postindexer_rebuild_all_sites');
+					?>
+
 					<h3><?php _e('Rebuild Network Post Index','postindexer'); ?></h3>
 					<p class='description'><?php _e('You can rebuild the Post Index by clicking on the <strong>Rebuild Index</strong> button below.','postindexer'); ?></p>
 					<p class='description'><?php _e("Note: This may take a considerable amount of time and could impact the performance of your server.",'postindexer'); ?></p>
@@ -247,7 +262,9 @@ if(!class_exists('postindexeradmin')) {
 					<p class="submit">
 						<input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Rebuild Index','postindexer'); ?>" />
 					</p>
+				</form>
 
+				<form action='' method='post'>
 					<table class="form-table">
 								<tbody><tr valign="top">
 									<th scope="row"><label for="site_name">Network Name</label></th>
@@ -846,6 +863,12 @@ if(!class_exists('postindexeradmin')) {
 		}
 
 		function rebuild_all_blogs( $blog_id ) {
+
+			$sql = $this->db->prepare( "TRUNCATE TABLE {$this->network_rebuildqueue}");
+			$this->db->query( $sql );
+
+			$sql = $this->db->prepare( "INSERT INTO {$this->network_rebuildqueue} SELECT blog_id, timestamp(now()), 0 FROM {$this->db->blogs}");
+			$this->db->query( $sql );
 
 		}
 
