@@ -31,3 +31,6 @@ if(is_admin()) {
 	require_once('includes/config.php');
 	require_once('classes/class.postindexeradmin.php');
 }
+
+// Include the rebuild cron class
+include_once('classes/cron.postindexerrebuild.php');

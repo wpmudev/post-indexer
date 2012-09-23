@@ -41,7 +41,6 @@ if(!class_exists('postindexeradmin')) {
 				}
 			}
 
-
 			$version = get_site_option('postindexer_version', false);
 			if($version === false || $version < $this->build) {
 				update_site_option('postindexer_version', $this->build);
