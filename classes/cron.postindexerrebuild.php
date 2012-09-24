@@ -48,12 +48,51 @@ if(!class_exists('postindexercron')) {
 			//add_action( 'autoblog_process_feeds', array(&$this, 'always_process_autoblog') );
 			add_filter( 'cron_schedules', array(&$this, 'add_time_period') );
 
-			// The cron action
-			add_action( 'postindexer_rebuild_cron', array( &$this, 'process_rebuild') );
+			// The cron action s
+			add_action( 'postindexer_firstpass_cron', array( &$this, 'process_rebuild_firstpass') );
+			add_action( 'postindexer_secondpass_cron', array( &$this, 'process_rebuild_secondpass') );
 
 		}
 
-		function process_rebuild() {
+		function process_rebuild_firstpass() {
+
+			// First pass - loop through queue entries with a 0 in the rebuild_progress and set them up for the rebuild process
+			$sql = $this->db->prepare("SELECT * FROM {$this->network_rebuildqueue} WHERE rebuild_progress = 0 ORDER BY rebuild_startdate ASC LIMIT 25");
+
+			$queue = $this->db->get_results( $sql );
+
+			if(!empty( $queue )) {
+				foreach($queue as $item) {
+					// Switch to the blog so we can get information
+					switch_to_blog( $item->blog_id );
+
+					$indexing = get_option( 'postindexer_active', 'yes' );
+					if($indexing == 'yes') {
+						// Get the highest post_id
+						$max_id = $this->db->get_var( $this->db->prepare( "SELECT MAX(ID) as max_id FROM {$this->db->posts}" ) );
+						if(!empty($max_id) && $max_id > 0) {
+							// We have posts - record the highest current post id
+							$this->db->update( $this->network_rebuildqueue, array('rebuild_progress' => $max_id), array('blog_id' => $item->blog_id) );
+						} else {
+							// No posts, so we'll remove it from the queue
+							$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_rebuildqueue} WHERE blog_id = %d", $item->blog_id ) );
+						}
+					} else {
+						// Remove the blog from the queue
+						$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_rebuildqueue} WHERE blog_id = %d", $item->blog_id ) );
+					}
+
+					// Go back to the original blog as we are done with this one
+					restore_current_blog();
+				}
+			}
+
+		}
+
+		function process_rebuild_secondpass() {
+
+			// Second pass - loop through queue entries with a on 0 in the rebuild_progress and start rebuilding
+
 
 		}
 
@@ -71,8 +110,11 @@ if(!class_exists('postindexercron')) {
 
 		function set_up_schedule() {
 
-			if ( !wp_next_scheduled( 'postindexer_rebuild_cron' ) ) {
-					wp_schedule_event(time(), $this->rebuildperiod, 'postindexer_rebuild_cron');
+			if ( !wp_next_scheduled( 'postindexer_firstpass_cron' ) ) {
+					wp_schedule_event(time(), $this->rebuildperiod, 'postindexer_firstpass_cron');
+			}
+			if ( !wp_next_scheduled( 'postindexer_secondpass_cron' ) ) {
+					wp_schedule_event(time(), $this->rebuildperiod, 'postindexer_secondpass_cron');
 			}
 
 		}
