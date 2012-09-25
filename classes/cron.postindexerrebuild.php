@@ -12,7 +12,7 @@ if(!class_exists('postindexercron')) {
 
 		// tables list
 		var $oldtables =  array( 'site_posts', 'term_counts', 'site_terms', 'site_term_relationships' );
-		var $tables = array( 'network_posts', 'network_rebuildqueue' );
+		var $tables = array( 'network_posts', 'network_rebuildqueue', 'network_postmeta' );
 
 		// old table variables
 		var $site_posts;
@@ -23,6 +23,7 @@ if(!class_exists('postindexercron')) {
 		// new table variables
 		var $network_posts;
 		var $network_rebuildqueue;
+		var $network_postmeta;
 
 		function postindexercron() {
 			$this->__construct();

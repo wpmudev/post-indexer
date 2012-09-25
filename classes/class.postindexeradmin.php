@@ -9,7 +9,7 @@ if(!class_exists('postindexeradmin')) {
 
 		// tables list
 		var $oldtables =  array( 'site_posts', 'term_counts', 'site_terms', 'site_term_relationships' );
-		var $tables = array( 'network_posts', 'network_rebuildqueue' );
+		var $tables = array( 'network_posts', 'network_rebuildqueue', 'network_postmeta' );
 
 		// old table variables
 		var $site_posts;
@@ -20,6 +20,7 @@ if(!class_exists('postindexeradmin')) {
 		// new table variables
 		var $network_posts;
 		var $network_rebuildqueue;
+		var $network_postmeta;
 
 		function postindexeradmin() {
 			$this->__construct();
@@ -363,6 +364,17 @@ if(!class_exists('postindexeradmin')) {
 							) DEFAULT CHARSET=utf8;";
 
 							$this->db->query( $sql );
+
+							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_postmeta . "` (
+							  `blog_id` bigint(20) unsigned NOT NULL,
+							  `meta_id` bigint(20) unsigned NOT NULL,
+							  `post_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+							  `meta_key` varchar(255) DEFAULT NULL,
+							  `meta_value` longtext,
+							  PRIMARY KEY (`blog_id`,`meta_id`),
+							  KEY `post_id` (`post_id`),
+							  KEY `meta_key` (`meta_key`)
+							) DEFAULT CHARSET=utf8;";
 
 							break;
 			}
