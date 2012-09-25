@@ -9,7 +9,7 @@ if(!class_exists('postindexeradmin')) {
 
 		// tables list
 		var $oldtables =  array( 'site_posts', 'term_counts', 'site_terms', 'site_term_relationships' );
-		var $tables = array( 'network_posts', 'network_rebuildqueue', 'network_postmeta' );
+		var $tables = array( 'network_posts', 'network_rebuildqueue', 'network_postmeta', 'network_terms', 'network_term_taxonomy', 'network_term_relationships' );
 
 		// old table variables
 		var $site_posts;
@@ -21,6 +21,9 @@ if(!class_exists('postindexeradmin')) {
 		var $network_posts;
 		var $network_rebuildqueue;
 		var $network_postmeta;
+		var $network_terms;
+		var $network_term_taxonomy;
+		var $network_term_relationships;
 
 		function postindexeradmin() {
 			$this->__construct();
@@ -375,6 +378,45 @@ if(!class_exists('postindexeradmin')) {
 							  KEY `post_id` (`post_id`),
 							  KEY `meta_key` (`meta_key`)
 							) DEFAULT CHARSET=utf8;";
+
+							$this->db->query( $sql );
+
+							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_terms . "` (
+							  `term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+							  `name` varchar(200) NOT NULL DEFAULT '',
+							  `slug` varchar(200) NOT NULL DEFAULT '',
+							  `term_group` bigint(10) NOT NULL DEFAULT '0',
+							  PRIMARY KEY (`term_id`),
+							  UNIQUE KEY `slug` (`slug`),
+							  KEY `name` (`name`)
+							) DEFAULT CHARSET=utf8;";
+
+							$this->db->query( $sql );
+
+							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_term_taxonomy . "` (
+							  `term_taxonomy_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+							  `term_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+							  `taxonomy` varchar(32) NOT NULL DEFAULT '',
+							  `description` longtext NOT NULL,
+							  `parent` bigint(20) unsigned NOT NULL DEFAULT '0',
+							  `count` bigint(20) NOT NULL DEFAULT '0',
+							  PRIMARY KEY (`term_taxonomy_id`),
+							  UNIQUE KEY `term_id_taxonomy` (`term_id`,`taxonomy`),
+							  KEY `taxonomy` (`taxonomy`)
+							) DEFAULT CHARSET=utf8;";
+
+							$this->db->query( $sql );
+
+							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_term_relationships . "` (
+							  `blog_id` bigint(20) unsigned NOT NULL,
+							  `object_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+							  `term_taxonomy_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+							  `term_order` int(11) NOT NULL DEFAULT '0',
+							  PRIMARY KEY (`blog_id`,`object_id`,`term_taxonomy_id`),
+							  KEY `term_taxonomy_id` (`term_taxonomy_id`)
+							) DEFAULT CHARSET=utf8;";
+
+							$this->db->query( $sql );
 
 							break;
 			}
