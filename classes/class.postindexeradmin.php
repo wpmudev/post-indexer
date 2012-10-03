@@ -952,15 +952,15 @@ if(!class_exists('postindexeradmin')) {
 
 		// Rebuild blogs
 
-		function rebuild_blog( $blog_id ) {
+		function rebuild_blog( $blog_id, $progress = 0 ) {
 
-			$this->insert_or_update( $this->network_rebuildqueue, array( 'blog_id' => $blog_id, 'rebuild_updatedate' => current_time('mysql'), 'rebuild_progress' => 0 ) );
+			$this->insert_or_update( $this->network_rebuildqueue, array( 'blog_id' => $blog_id, 'rebuild_updatedate' => current_time('mysql'), 'rebuild_progress' => $progress ) );
 
 		}
 
-		function rebuild_all_blogs( $blog_id ) {
+		function rebuild_all_blogs() {
 
-			$sql = $this->db->prepare( "TRUNCATE TABLE {$this->network_rebuildqueue}");
+			$sql = $this->db->prepare( "DELETE FROM {$this->network_rebuildqueue}");
 			$this->db->query( $sql );
 
 			$sql = $this->db->prepare( "INSERT INTO {$this->network_rebuildqueue} SELECT blog_id, timestamp(now()), 0 FROM {$this->db->blogs}");

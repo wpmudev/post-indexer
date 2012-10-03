@@ -84,6 +84,8 @@ if(!class_exists('postindexercron')) {
 							// No posts, so we'll remove it from the queue
 							$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_rebuildqueue} WHERE blog_id = %d", $item->blog_id ) );
 						}
+						// Remove existing posts because we are going to rebuild
+						$this->remove_indexed_entries_for_blog( $item->blog_id );
 					} else {
 						// Remove the blog from the queue
 						$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_rebuildqueue} WHERE blog_id = %d", $item->blog_id ) );
@@ -99,21 +101,22 @@ if(!class_exists('postindexercron')) {
 		function process_rebuild_secondpass() {
 
 			// Second pass - loop through queue entries with a on 0 in the rebuild_progress and start rebuilding
-			$sql = $this->db->prepare("SELECT * FROM {$this->network_rebuildqueue} WHERE rebuild_progress != 0 ORDER BY rebuild_updatedate ASC LIMIT 5");
+			$sql = $this->db->prepare("SELECT * FROM {$this->network_rebuildqueue} WHERE rebuild_progress > 0 ORDER BY rebuild_updatedate ASC LIMIT 5");
 			$queue = $this->db->get_results( $sql );
 
 			foreach( $queue as $item ) {
 				// Switch to the blog so we can get information
 				switch_to_blog( $item->blog_id );
 
+				$posttypes = get_option( 'postindexer_posttypes', array( 'post' ) );
 				// Get the first five posts to work through
-				$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID <= %d ORDER BY ID DESC LIMIT 5", $item->rebuild_progress );
-				$posts = $this->db->get_results( $sql );
+				$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID <= %d AND post_status = 'publish' AND post_type IN ('" . implode("','", $posttypes) . "') ORDER BY ID DESC LIMIT 5", $item->rebuild_progress );
+				$posts = $this->db->get_results( $sql, ARRAY_A );
 
-				while(!empty($posts)) {
+				if(!empty($posts)) {
 					foreach($posts as $key => $post) {
 						// Get the local post ID
-						$local_id = $post->ID;
+						$local_id = $post['ID'];
 						// Add in the blog id to the post record
 						$post['BLOG_ID'] = $item->blog_id;
 						// Add the post record to the network tables
@@ -121,7 +124,7 @@ if(!class_exists('postindexercron')) {
 
 						// Get the post meta for this local post
 						$metasql = $this->db->prepare( "SELECT * FROM {$this->db->postmeta} WHERE post_id = %d", $local_id );
-						$meta = $this->db->get_results( $metasql );
+						$meta = $this->db->get_results( $metasql, ARRAY_A );
 
 						if(!empty($meta)) {
 							foreach($meta as $metakey => $postmeta) {
@@ -134,9 +137,20 @@ if(!class_exists('postindexercron')) {
 
 						// Get the taxonomy for this local post
 
-						// Update the rebuild queue with the next post
+						// Update the rebuild queue with the next post to be processed
+						$previous_id = (int) ($local_id - 1);
+						if($previous_id > 0) {
+							// We may still have posts to process
+							$this->rebuild_blog( $item->blog_id, $previous_id );
+						} else {
+							// We've run out of posts now so remove us from the queue
+							$this->remove_blog_from_queue( $item->blog_id );
+						}
 
 					}
+				} else {
+					// We've run out of posts so remove our entry from the queue
+					$this->remove_blog_from_queue( $item->blog_id );
 				}
 
 				// Go back to the original blog as we are done with this one
@@ -187,6 +201,32 @@ if(!class_exists('postindexercron')) {
 			if ( !wp_next_scheduled( 'postindexer_postmetatidy_cron' ) ) {
 					wp_schedule_event(time(), 'hourly', 'postindexer_postmetatidy_cron');
 			}
+
+		}
+
+		function rebuild_blog( $blog_id, $progress = 0 ) {
+
+			$this->insert_or_update( $this->network_rebuildqueue, array( 'blog_id' => $blog_id, 'rebuild_updatedate' => current_time('mysql'), 'rebuild_progress' => $progress ) );
+
+		}
+
+		function remove_indexed_entries_for_blog( $blog_id ) {
+
+			// Remove all the networked posts for the blog id
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_posts} WHERE BLOG_ID = %d", $blog_id ) );
+
+			// Remove all the networked postmeta for the blog id
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_postmeta} WHERE blog_id = %d", $blog_id ) );
+
+			// Remove all the networked term relationship information for the blog_id
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_term_relationships} WHERE blog_id = %d", $blog_id ) );
+
+		}
+
+		function remove_blog_from_queue( $blog_id ) {
+
+			// Remove the blog from the queue
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_rebuildqueue} WHERE blog_id = %d", $blog_id ) );
 
 		}
 
