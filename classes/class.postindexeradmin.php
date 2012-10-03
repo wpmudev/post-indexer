@@ -135,7 +135,7 @@ if(!class_exists('postindexeradmin')) {
 													wp_die( __( 'You do not have permission to access this page.' ) );
 
 												if ( $blog_id != '0' ) {
-													update_blog_option( $blog_id, 'postindexer_active', 'no' );
+													$this->disable_indexing_for_blog( $blog_id );
 													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'disableindexing' ), wp_get_referer() ) );
 												} else {
 													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_disableindexing' ), wp_get_referer() ) );
@@ -148,7 +148,7 @@ if(!class_exists('postindexeradmin')) {
 													wp_die( __( 'You do not have permission to access this page.' ) );
 
 												if ( $blog_id != '0' ) {
-													update_blog_option( $blog_id, 'postindexer_active', 'yes' );
+													$this->enable_indexing_for_blog( $blog_id );
 													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'enableindexing' ), wp_get_referer() ) );
 												} else {
 													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_enableindexing' ), wp_get_referer() ) );
@@ -950,6 +950,8 @@ if(!class_exists('postindexeradmin')) {
 			}
 		}
 
+		// Rebuild blogs
+
 		function rebuild_blog( $blog_id ) {
 
 			$this->insert_or_update( $this->network_rebuildqueue, array( 'blog_id' => $blog_id, 'rebuild_startdate' => current_time('mysql'), 'rebuild_progress' => 0 ) );
@@ -977,6 +979,48 @@ if(!class_exists('postindexeradmin')) {
 			} else {
 				return false;
 			}
+
+		}
+
+		function disable_indexing_for_blog( $blog_id ) {
+
+			// Switch off indexing
+			update_blog_option( $blog_id, 'postindexer_active', 'no' );
+
+			// Remove any entry from the rebuild queue
+			$this->remove_blog_from_queue( $blog_id );
+
+			// Remove the existing entries
+			$this->remove_indexed_entries_for_blog( $blog_id );
+
+		}
+
+		function enable_indexing_for_blog( $blog_id ) {
+
+			// Switch on the indexing
+			update_blog_option( $blog_id, 'postindexer_active', 'yes' );
+
+			// Queue the site for rebuilding
+			$this->rebuild_blog( $blog_id );
+		}
+
+		function remove_indexed_entries_for_blog( $blog_id ) {
+
+			// Remove all the networked posts for the blog id
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_posts} WHERE BLOG_ID = %d", $blog_id ) );
+
+			// Remove all the networked postmeta for the blog id
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_postmeta} WHERE blog_id = %d", $blog_id ) );
+
+			// Remove all the networked term relationship information for the blog_id
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_term_relationships} WHERE blog_id = %d", $blog_id ) );
+
+		}
+
+		function remove_blog_from_queue( $blog_id ) {
+
+			// Remove the blog from the queue
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_rebuildqueue} WHERE blog_id = %d", $blog_id ) );
 
 		}
 

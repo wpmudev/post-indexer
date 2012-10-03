@@ -12,7 +12,7 @@ if(!class_exists('postindexercron')) {
 
 		// tables list
 		var $oldtables =  array( 'site_posts', 'term_counts', 'site_terms', 'site_term_relationships' );
-		var $tables = array( 'network_posts', 'network_rebuildqueue', 'network_postmeta' );
+		var $tables = array( 'network_posts', 'network_rebuildqueue', 'network_postmeta', 'network_terms', 'network_term_taxonomy', 'network_term_relationships' );
 
 		// old table variables
 		var $site_posts;
@@ -24,6 +24,9 @@ if(!class_exists('postindexercron')) {
 		var $network_posts;
 		var $network_rebuildqueue;
 		var $network_postmeta;
+		var $network_terms;
+		var $network_term_taxonomy;
+		var $network_term_relationships;
 
 		function postindexercron() {
 			$this->__construct();
@@ -52,6 +55,9 @@ if(!class_exists('postindexercron')) {
 			// The cron action s
 			add_action( 'postindexer_firstpass_cron', array( &$this, 'process_rebuild_firstpass') );
 			add_action( 'postindexer_secondpass_cron', array( &$this, 'process_rebuild_secondpass') );
+
+			add_action( 'postindexer_tagtidy_cron', array( &$this, 'process_tidy_tags') );
+			add_action( 'postindexer_postmetatidy_cron', array( &$this, 'process_tidy_postmeta') );
 
 		}
 
@@ -97,6 +103,18 @@ if(!class_exists('postindexercron')) {
 
 		}
 
+		function process_tidy_tags() {
+
+			// Hourly tidy up of tags and tag counts
+
+		}
+
+		function process_tidy_postmeta() {
+
+			// Hourly tidy up of postmeta entries
+
+		}
+
 		function add_time_period( $periods ) {
 
 			if(!is_array($periods)) {
@@ -114,8 +132,17 @@ if(!class_exists('postindexercron')) {
 			if ( !wp_next_scheduled( 'postindexer_firstpass_cron' ) ) {
 					wp_schedule_event(time(), $this->rebuildperiod, 'postindexer_firstpass_cron');
 			}
+
 			if ( !wp_next_scheduled( 'postindexer_secondpass_cron' ) ) {
 					wp_schedule_event(time(), $this->rebuildperiod, 'postindexer_secondpass_cron');
+			}
+
+			if ( !wp_next_scheduled( 'postindexer_tagtidy_cron' ) ) {
+					wp_schedule_event(time(), 'hourly', 'postindexer_tagtidy_cron');
+			}
+
+			if ( !wp_next_scheduled( 'postindexer_postmetatidy_cron' ) ) {
+					wp_schedule_event(time(), 'hourly', 'postindexer_postmetatidy_cron');
 			}
 
 		}
