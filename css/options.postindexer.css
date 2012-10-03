@@ -3,10 +3,13 @@
 /* Clock icon from http://findicons.com/icon/233241/clock2?id=334046 */
 
 #rebuildingmessage {
-	padding: 10px;
 	border-top: 1px solid #a9a9a9;
 	border-bottom: 1px solid #a9a9a9;
-	font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
-	background: #d5d5d5 url(../images/clock.png);
+	background: #d5d5d5 url(../images/clock.png) no-repeat -40px center;
+	padding: 15px 10px 15px 50px;
+	color: #3d3d3d;
+	font: 14px "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+	margin-top: 10px;
+	margin-bottom: 10px;
 }
 

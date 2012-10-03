@@ -259,7 +259,7 @@ if(!class_exists('postindexeradmin')) {
 					// Show a rebuilding message and timer
 					?>
 					<div id='rebuildingmessage'>
-					Boo
+					<?php _e('Your index is currently in the process of being rebuilt.','postindexer'); ?>
 					</div>
 					<?php
 				}
