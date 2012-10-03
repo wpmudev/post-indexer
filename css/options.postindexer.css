@@ -1,0 +1,12 @@
+/* @override http://dev.site/wp-content/plugins/post-indexer/css/options.postindexer.css?ver=3.4.2 */
+
+/* Clock icon from http://findicons.com/icon/233241/clock2?id=334046 */
+
+#rebuildingmessage {
+	padding: 10px;
+	border-top: 1px solid #a9a9a9;
+	border-bottom: 1px solid #a9a9a9;
+	font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+	background: #d5d5d5 url(../images/clock.png);
+}
+

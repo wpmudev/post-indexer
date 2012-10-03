@@ -224,7 +224,10 @@ if(!class_exists('postindexeradmin')) {
 		}
 
 		function add_header_postindexer_page() {
-			 $this->process_postindexer_page();
+
+			wp_enqueue_style('postindexernetworksettings', WP_PLUGIN_URL . '/post-indexer/css/options.postindexer.css');
+
+			$this->process_postindexer_page();
 		}
 
 		function process_postindexer_page() {
