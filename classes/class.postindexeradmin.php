@@ -372,7 +372,7 @@ if(!class_exists('postindexeradmin')) {
 
 							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_rebuildqueue . "` (
 							  `blog_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-							  `rebuild_startdate` timestamp NULL DEFAULT NULL,
+							  `rebuild_updatedate` timestamp NULL DEFAULT NULL,
 							  `rebuild_progress` bigint(20) unsigned DEFAULT NULL,
 							  PRIMARY KEY (`blog_id`)
 							) DEFAULT CHARSET=utf8;";
@@ -954,7 +954,7 @@ if(!class_exists('postindexeradmin')) {
 
 		function rebuild_blog( $blog_id ) {
 
-			$this->insert_or_update( $this->network_rebuildqueue, array( 'blog_id' => $blog_id, 'rebuild_startdate' => current_time('mysql'), 'rebuild_progress' => 0 ) );
+			$this->insert_or_update( $this->network_rebuildqueue, array( 'blog_id' => $blog_id, 'rebuild_updatedate' => current_time('mysql'), 'rebuild_progress' => 0 ) );
 
 		}
 

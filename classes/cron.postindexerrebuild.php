@@ -64,7 +64,7 @@ if(!class_exists('postindexercron')) {
 		function process_rebuild_firstpass() {
 
 			// First pass - loop through queue entries with a 0 in the rebuild_progress and set them up for the rebuild process
-			$sql = $this->db->prepare("SELECT * FROM {$this->network_rebuildqueue} WHERE rebuild_progress = 0 ORDER BY rebuild_startdate ASC LIMIT 25");
+			$sql = $this->db->prepare("SELECT * FROM {$this->network_rebuildqueue} WHERE rebuild_progress = 0 ORDER BY rebuild_updatedate ASC LIMIT 25");
 
 			$queue = $this->db->get_results( $sql );
 
@@ -99,6 +99,10 @@ if(!class_exists('postindexercron')) {
 		function process_rebuild_secondpass() {
 
 			// Second pass - loop through queue entries with a on 0 in the rebuild_progress and start rebuilding
+			$sql = $this->db->prepare("SELECT * FROM {$this->network_rebuildqueue} WHERE rebuild_progress != 0 ORDER BY rebuild_updatedate ASC LIMIT 25");
+
+			$queue = $this->db->get_results( $sql );
+
 
 
 		}
@@ -144,6 +148,29 @@ if(!class_exists('postindexercron')) {
 			if ( !wp_next_scheduled( 'postindexer_postmetatidy_cron' ) ) {
 					wp_schedule_event(time(), 'hourly', 'postindexer_postmetatidy_cron');
 			}
+
+		}
+
+		// Insert on duplicate update function
+		function insert_or_update( $table, $query ) {
+
+				$fields = array_keys($query);
+				$formatted_fields = array();
+				foreach ( $fields as $field ) {
+					$form = '%s';
+					$formatted_fields[] = $form;
+				}
+				$sql = "INSERT INTO `$table` (`" . implode( '`,`', $fields ) . "`) VALUES ('" . implode( "','", $formatted_fields ) . "')";
+				$sql .= " ON DUPLICATE KEY UPDATE ";
+
+				$dup = array();
+				foreach($fields as $field) {
+					$dup[] = "`" . $field . "` = VALUES(`" . $field . "`)";
+				}
+
+				$sql .= implode(',', $dup);
+
+				return $this->db->query( $this->db->prepare( $sql, $query ) );
 
 		}
 
