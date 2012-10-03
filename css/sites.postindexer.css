@@ -1,0 +1,11 @@
+/* @override http://dev.site/wp-content/plugins/post-indexer/css/sites.postindexer.css?ver=3.4.2 */
+
+
+/* Clock icon from http://findicons.com/icon/233241/clock2?id=334046 */
+
+div.smallrebuildclock {
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background: transparent url(../images/smallclock.png) no-repeat center center;
+}

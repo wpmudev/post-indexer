@@ -61,7 +61,7 @@ if(!class_exists('postindexeradmin')) {
 			add_filter( 'wpmu_blogs_columns', array(&$this, 'add_sites_column_heading'), 99 );
 			add_action( 'manage_sites_custom_column', array(&$this, 'add_sites_column_data'), 99, 2 );
 			add_action( 'wp_ajax_editsitepostindexer', array(&$this, 'edit_site_postindexer') );
-			add_action( 'admin_enqueue_scripts', array(&$this, 'add_header_sites_page'));
+			add_action( 'admin_head-sites.php', array(&$this, 'add_header_sites_page'));
 			add_action( 'wpmuadminedit' , array(&$this, 'process_sites_page'));
 			// Sites update settings
 			add_filter( 'network_sites_updated_message_disableindexing' , array(&$this, 'output_msg_sites_page') );
@@ -94,18 +94,18 @@ if(!class_exists('postindexeradmin')) {
 		//---Functions------------------------------------------------------------//
 		//------------------------------------------------------------------------//
 
-		function add_header_sites_page( $hook_suffix ) {
-			if($hook_suffix == 'sites.php') {
-				wp_enqueue_script('thickbox');
+		function add_header_sites_page() {
+			wp_enqueue_style('postindexernetworksettings', WP_PLUGIN_URL . '/post-indexer/css/sites.postindexer.css');
 
-				wp_register_script('pi-sites-post-indexer', WP_PLUGIN_URL . '/post-indexer/js/sites.postindexer.js', array('jquery', 'thickbox'));
-				wp_enqueue_script('pi-sites-post-indexer');
+			wp_enqueue_script('thickbox');
 
-				wp_localize_script('pi-sites-post-indexer', 'postindexer', array( 'siteedittitle'	=>	__('Post Indexer Settings','postindexer')
+			wp_register_script('pi-sites-post-indexer', WP_PLUGIN_URL . '/post-indexer/js/sites.postindexer.js', array('jquery', 'thickbox'));
+			wp_enqueue_script('pi-sites-post-indexer');
+
+			wp_localize_script('pi-sites-post-indexer', 'postindexer', array( 'siteedittitle'	=>	__('Post Indexer Settings','postindexer')
 																												));
+			wp_enqueue_style('thickbox');
 
-				wp_enqueue_style('thickbox');
-			}
 		}
 
 		function output_msg_sites_page( $msg ) {
@@ -185,6 +185,14 @@ if(!class_exists('postindexeradmin')) {
 			if($column_name == 'postindexer') {
 				$indexing = get_blog_option( $blog_id, 'postindexer_active', 'yes' );
 				if( $indexing == 'yes' ) {
+
+					// Find out if this is in the queue
+					if($this->is_in_rebuild_queue( $blog_id )) {
+					?>
+						<div class='smallrebuildclock'>&nbsp;</div>
+					<?php
+					}
+
 					$posttypes = get_blog_option( $blog_id, 'postindexer_posttypes', array( 'post' ) );
 					echo implode( '<br/>', $posttypes );
 					?>
