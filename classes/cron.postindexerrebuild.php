@@ -123,7 +123,7 @@ if(!class_exists('postindexercron')) {
 						$this->insert_or_update( $this->network_posts, $post );
 
 						// Get the post meta for this local post
-						$metasql = $this->db->prepare( "SELECT * FROM {$this->db->postmeta} WHERE post_id = %d", $local_id );
+						$metasql = $this->db->prepare( "SELECT * FROM {$this->db->postmeta} WHERE post_id = %d AND meta_key NOT IN ('_edit_last', '_edit_lock')", $local_id );
 						$meta = $this->db->get_results( $metasql, ARRAY_A );
 
 						if(!empty($meta)) {
