@@ -79,7 +79,7 @@ if(!class_exists('postindexercron')) {
 						$max_id = $this->db->get_var( $this->db->prepare( "SELECT MAX(ID) as max_id FROM {$this->db->posts}" ) );
 						if(!empty($max_id) && $max_id > 0) {
 							// We have posts - record the highest current post id
-							$this->db->update( $this->network_rebuildqueue, array('rebuild_progress' => $max_id), array('blog_id' => $item->blog_id) );
+							$this->db->update( $this->network_rebuildqueue, array('rebuild_progress' => $max_id, 'rebuild_updatedate' => current_time('mysql')), array('blog_id' => $item->blog_id) );
 						} else {
 							// No posts, so we'll remove it from the queue
 							$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_rebuildqueue} WHERE blog_id = %d", $item->blog_id ) );
@@ -99,10 +99,49 @@ if(!class_exists('postindexercron')) {
 		function process_rebuild_secondpass() {
 
 			// Second pass - loop through queue entries with a on 0 in the rebuild_progress and start rebuilding
-			$sql = $this->db->prepare("SELECT * FROM {$this->network_rebuildqueue} WHERE rebuild_progress != 0 ORDER BY rebuild_updatedate ASC LIMIT 25");
-
+			$sql = $this->db->prepare("SELECT * FROM {$this->network_rebuildqueue} WHERE rebuild_progress != 0 ORDER BY rebuild_updatedate ASC LIMIT 5");
 			$queue = $this->db->get_results( $sql );
 
+			foreach( $queue as $item ) {
+				// Switch to the blog so we can get information
+				switch_to_blog( $item->blog_id );
+
+				// Get the first five posts to work through
+				$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID <= %d ORDER BY ID DESC LIMIT 5", $item->rebuild_progress );
+				$posts = $this->db->get_results( $sql );
+
+				while(!empty($posts)) {
+					foreach($posts as $key => $post) {
+						// Get the local post ID
+						$local_id = $post->ID;
+						// Add in the blog id to the post record
+						$post['BLOG_ID'] = $item->blog_id;
+						// Add the post record to the network tables
+						$this->insert_or_update( $this->network_posts, $post );
+
+						// Get the post meta for this local post
+						$metasql = $this->db->prepare( "SELECT * FROM {$this->db->postmeta} WHERE post_id = %d", $local_id );
+						$meta = $this->db->get_results( $metasql );
+
+						if(!empty($meta)) {
+							foreach($meta as $metakey => $postmeta) {
+								// Add in the blog_id to the table
+								$postmeta['blog_id'] = $item->blog_id;
+								// Add it to the network tables
+								$this->insert_or_update( $this->network_postmeta, $postmeta );
+							}
+						}
+
+						// Get the taxonomy for this local post
+
+						// Update the rebuild queue with the next post
+
+					}
+				}
+
+				// Go back to the original blog as we are done with this one
+				restore_current_blog();
+			}
 
 
 		}
