@@ -31,7 +31,7 @@ require_once('includes/config.php');
 require_once('includes/functions.php');
 
 // Include the database model we will be using across classes
-require_once('classes/cron.model.php');
+require_once('classes/class.model.php');
 
 // Include the rebuild cron class
 require_once('classes/cron.postindexerrebuild.php');

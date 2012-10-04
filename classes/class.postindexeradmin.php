@@ -152,7 +152,7 @@ if(!class_exists('postindexeradmin')) {
 				if( $indexing == 'yes' ) {
 
 					// Find out if this is in the queue
-					if($this->is_in_rebuild_queue( $blog_id )) {
+					if($this->model->is_in_rebuild_queue( $blog_id )) {
 					?>
 						<div class='smallrebuildclock'>&nbsp;</div>
 					<?php
@@ -228,7 +228,7 @@ if(!class_exists('postindexeradmin')) {
 				<h2><?php _e('Post Indexer Options','postindexer'); ?></h2>
 
 				<?php
-				if($this->blogs_for_rebuilding()) {
+				if($this->model->blogs_for_rebuilding()) {
 					// Show a rebuilding message and timer
 					?>
 					<div id='rebuildingmessage'>
