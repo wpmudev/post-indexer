@@ -70,56 +70,67 @@ if(!class_exists('postindexercron')) {
 			$queue = $this->model->get_rebuilding_blogs();
 
 			foreach( $queue as $item ) {
-				// Switch to the blog so we can get information
-				switch_to_blog( $item->blog_id );
 
-				$posttypes = get_option( 'postindexer_posttypes', array( 'post' ) );
-				// Get the first five posts to work through
-				$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID <= %d AND post_status = 'publish' AND post_type IN ('" . implode("','", $posttypes) . "') ORDER BY ID DESC LIMIT 5", $item->rebuild_progress );
-				$posts = $this->db->get_results( $sql, ARRAY_A );
+				if( $this->model->is_blog_indexable( $item->blog_id ) ) {
+					// Swtich to the blog so we don't have to keep doing it
+					$this->model->switch_to_blog( $item->blog_id );
 
-				if(!empty($posts)) {
-					foreach($posts as $key => $post) {
-						// Get the local post ID
-						$local_id = $post['ID'];
-						// Add in the blog id to the post record
-						$post['BLOG_ID'] = $item->blog_id;
-						// Add the post record to the network tables
-						$this->model->insert_or_update( $this->network_posts, $post );
+					$posts = $this->model->get_posts_for_indexing( $item->blog_id, false );
+					if(!empty($posts)) {
+						foreach($posts as $key => $post) {
+							// Check if the post should be indexed or not
+							if($this->model->is_post_indexable( $post['ID'], $item->blog_id ) ) {
 
-						// Get the post meta for this local post
-						$metasql = $this->db->prepare( "SELECT * FROM {$this->db->postmeta} WHERE post_id = %d AND meta_key NOT IN ('_edit_last', '_edit_lock')", $local_id );
-						$meta = $this->db->get_results( $metasql, ARRAY_A );
+								// Get the local post ID
+								$local_id = $post['ID'];
+								// Add in the blog id to the post record
+								$post['BLOG_ID'] = $item->blog_id;
 
-						if(!empty($meta)) {
-							foreach($meta as $metakey => $postmeta) {
-								// Add in the blog_id to the table
-								$postmeta['blog_id'] = $item->blog_id;
-								// Add it to the network tables
-								$this->model->insert_or_update( $this->network_postmeta, $postmeta );
+								// Add the post record to the network tables
+								$this->model->index_post( $post );
+
+								// Get the post meta for this local post
+								$meta = $this->model->get_postmeta_for_indexing( $local_id );
+
+								if(!empty($meta)) {
+									foreach($meta as $metakey => $postmeta) {
+										// Add in the blog_id to the table
+										$postmeta['blog_id'] = $item->blog_id;
+										// Add it to the network tables
+										$this->model->index_postmeta( $postmeta );
+									}
+								}
+
+								// Get the taxonomy for this local post
+
 							}
+
+							// Update the rebuild queue with the next post to be processed
+							$previous_id = (int) ($local_id - 1);
+							if($previous_id > 0) {
+								// We may still have posts to process
+								$this->model->update_blog_queue( $item->blog_id, $previous_id );
+							} else {
+								// We've run out of posts now so remove us from the queue
+								$this->model->remove_blog_from_queue( $item->blog_id );
+							}
+
 						}
-
-						// Get the taxonomy for this local post
-
-						// Update the rebuild queue with the next post to be processed
-						$previous_id = (int) ($local_id - 1);
-						if($previous_id > 0) {
-							// We may still have posts to process
-							$this->model->rebuild_blog( $item->blog_id, $previous_id );
-						} else {
-							// We've run out of posts now so remove us from the queue
-							$this->model->remove_blog_from_queue( $item->blog_id );
-						}
-
+					} else {
+						// We've run out of posts so remove our entry from the queue
+						$this->model->remove_blog_from_queue( $item->blog_id );
 					}
+
+					// Switch back from the blog
+					$this->model->restore_current_blog();
+
 				} else {
-					// We've run out of posts so remove our entry from the queue
+					// Remove the blog from the queue as something has changed
 					$this->model->remove_blog_from_queue( $item->blog_id );
+					// Remove any existing posts in case we've already indexed them
+					$this->model->remove_indexed_entries_for_blog( $item->blog_id );
 				}
 
-				// Go back to the original blog as we are done with this one
-				restore_current_blog();
 			}
 
 

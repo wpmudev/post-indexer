@@ -196,9 +196,9 @@ if(!class_exists('postindexermodel')) {
 
 		// Rebuild blogs
 
-		function rebuild_blog( $blog_id, $progress = 0 ) {
+		function rebuild_blog( $blog_id ) {
 
-			$this->insert_or_update( $this->network_rebuildqueue, array( 'blog_id' => $blog_id, 'rebuild_updatedate' => current_time('mysql'), 'rebuild_progress' => $progress ) );
+			$this->insert_or_update( $this->network_rebuildqueue, array( 'blog_id' => $blog_id, 'rebuild_updatedate' => current_time('mysql'), 'rebuild_progress' => 0 ) );
 
 		}
 
@@ -301,7 +301,50 @@ if(!class_exists('postindexermodel')) {
 			return $max_id;
 		}
 
+		function get_posts_for_indexing( $blog_id, $switch = true ) {
+
+			if($switch) $this->switch_to_blog( $blog_id );
+
+			$posttypes = get_option( 'postindexer_posttypes', array( 'post' ) );
+			// Get the first five posts to work through that are published, in the selected post types and not password protected
+			$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID <= %d AND post_status = 'publish' AND post_type IN ('" . implode("','", $posttypes) . "') AND post_password = '' ORDER BY ID DESC LIMIT 5", $item->rebuild_progress );
+			$posts = $this->db->get_results( $sql, ARRAY_A );
+
+			if($switch) $this->restore_current_blog();
+
+			return $posts;
+		}
+
+		function get_postmeta_for_indexing( $post_id, $switch = true ) {
+
+			if($switch) $this->switch_to_blog( $blog_id );
+
+			// Get the post meta for this local post
+			$metasql = $this->db->prepare( "SELECT * FROM {$this->db->postmeta} WHERE post_id = %d AND meta_key NOT IN ('_edit_last', '_edit_lock')", $post_id );
+			$meta = $this->db->get_results( $metasql, ARRAY_A );
+
+			if($switch) $this->restore_current_blog();
+
+			return $meta;
+
+		}
+
 		function is_post_indexable( $post_id, $blog_id ) {
+
+			return true;
+
+		}
+
+		function index_post( $post ) {
+
+			// Add the post record to the network tables
+			$this->insert_or_update( $this->network_posts, $post );
+
+		}
+
+		function index_postmeta( $postmeta ) {
+
+			$this->insert_or_update( $this->network_postmeta, $postmeta );
 
 		}
 
