@@ -39,11 +39,11 @@ if(!class_exists('postindexercron')) {
 
 			if(!empty( $queue )) {
 				foreach($queue as $item) {
-					// Switch to the blog so we can get information
-					switch_to_blog( $item->blog_id );
 
-					$indexing = get_option( 'postindexer_active', 'yes' );
-					if($indexing == 'yes') {
+					if( $this->model->is_blog_indexable( $item->blog_id ) ) {
+						// Switch to the blog so we can get information
+						switch_to_blog( $item->blog_id );
+
 						// Get the highest post_id
 						$max_id = $this->db->get_var( $this->db->prepare( "SELECT MAX(ID) as max_id FROM {$this->db->posts}" ) );
 						if(!empty($max_id) && $max_id > 0) {
@@ -51,17 +51,18 @@ if(!class_exists('postindexercron')) {
 							$this->db->update( $this->network_rebuildqueue, array('rebuild_progress' => $max_id, 'rebuild_updatedate' => current_time('mysql')), array('blog_id' => $item->blog_id) );
 						} else {
 							// No posts, so we'll remove it from the queue
-							$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_rebuildqueue} WHERE blog_id = %d", $item->blog_id ) );
+							$this->model->remove_blog_from_queue( $item->blog_id );
 						}
 						// Remove existing posts because we are going to rebuild
 						$this->model->remove_indexed_entries_for_blog( $item->blog_id );
+
+						// Go back to the original blog as we are done with this one
+						restore_current_blog();
 					} else {
 						// Remove the blog from the queue
 						$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_rebuildqueue} WHERE blog_id = %d", $item->blog_id ) );
 					}
 
-					// Go back to the original blog as we are done with this one
-					restore_current_blog();
 				}
 			}
 

@@ -222,6 +222,21 @@ if(!class_exists('postindexermodel')) {
 
 		}
 
+		function is_blog_indexable( $blog_id ) {
+
+			switch_to_blog( $blog_id );
+			$indexing = get_option( 'postindexer_active', 'yes' );
+
+			restore_current_blog();
+
+			if($indexing == 'yes') {
+				return true;
+			} else {
+				return false;
+			}
+
+		}
+
 		function disable_indexing_for_blog( $blog_id ) {
 
 			// Switch off indexing
@@ -261,6 +276,10 @@ if(!class_exists('postindexermodel')) {
 
 			// Remove the blog from the queue
 			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_rebuildqueue} WHERE blog_id = %d", $blog_id ) );
+
+		}
+
+		function is_post_indexable( $post_id, $blog_id ) {
 
 		}
 
