@@ -30,8 +30,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 require_once('includes/config.php');
 require_once('includes/functions.php');
 
+// Include the database model we will be using across classes
+require_once('classes/cron.model.php');
+
 // Include the rebuild cron class
-include_once('classes/cron.postindexerrebuild.php');
+require_once('classes/cron.postindexerrebuild.php');
 
 if(is_admin()) {
 	require_once('classes/class.postindexeradmin.php');
