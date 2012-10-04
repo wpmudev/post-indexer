@@ -340,7 +340,7 @@ if(!class_exists('postindexermodel')) {
 			WHERE tr.object_id = 1
 			*/
 
-			$taxsql = $this->db->prepare();
+			$taxsql = $this->db->prepare( "SELECT t.term_id, t.name, t.slug, t.term_group, tt.term_taxonomy_id, tt.taxonomy, tt.description, tt.parent, tr.term_order FROM {$this->db->terms} AS t INNER JOIN {$this->db->term_taxonomy} AS tt ON t.term_id = tt.term_id INNER JOIN {$this->db->term_relationships} AS tr ON tt.term_taxonomy_id = tr.term_taxonomy_id WHERE tr.object_id = %d", $post_id );
 			$tax = $this->db->get_results( $taxsql, ARRAY_A );
 
 			if($switch) $this->restore_current_blog();
