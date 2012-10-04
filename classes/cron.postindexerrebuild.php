@@ -90,10 +90,9 @@ if(!class_exists('postindexercron')) {
 								$this->model->index_post( $post );
 
 								// Get the post meta for this local post
-								$meta = $this->model->get_postmeta_for_indexing( $local_id );
-
+								$meta = $this->model->get_postmeta_for_indexing( $local_id, false );
 								if(!empty($meta)) {
-									foreach($meta as $metakey => $postmeta) {
+									foreach( $meta as $metakey => $postmeta ) {
 										// Add in the blog_id to the table
 										$postmeta['blog_id'] = $item->blog_id;
 										// Add it to the network tables
@@ -102,6 +101,12 @@ if(!class_exists('postindexercron')) {
 								}
 
 								// Get the taxonomy for this local post
+								$taxonomy = $this->model->get_taxonomy_for_indexing( $local_id, false );
+								if(!empty($tax)) {
+									foreach( $taxonomy as $taxkey => $tax ) {
+
+									}
+								}
 
 							}
 
