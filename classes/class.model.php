@@ -329,6 +329,26 @@ if(!class_exists('postindexermodel')) {
 
 		}
 
+		function get_taxonomy_for_indexing( $post_id, $switch = true ) {
+
+			if($switch) $this->switch_to_blog( $blog_id );
+
+			/*
+			SELECT t.term_id, t.name, t.slug, term_group, tt.term_taxonomy_id, tt.taxonomy, tt.description, tt.parent, tr.term_order
+			FROM wp_terms AS t INNER JOIN wp_term_taxonomy AS tt ON t.term_id = tt.term_id
+			INNER JOIN wp_term_relationships AS tr ON tt.term_taxonomy_id = tr.term_taxonomy_id
+			WHERE tr.object_id = 1
+			*/
+
+			$taxsql = $this->db->prepare();
+			$tax = $this->db->get_results( $taxsql, ARRAY_A );
+
+			if($switch) $this->restore_current_blog();
+
+			return $tax;
+
+		}
+
 		function is_post_indexable( $post_id, $blog_id ) {
 
 			return true;
