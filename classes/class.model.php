@@ -28,6 +28,9 @@ if(!class_exists('postindexermodel')) {
 		var $network_term_taxonomy;
 		var $network_term_relationships;
 
+		// variable to identify if we've switched blogs or not
+		var $on_blog_id = 0;
+
 		function postindexermodel() {
 			$this->__construct();
 		}
@@ -179,6 +182,7 @@ if(!class_exists('postindexermodel')) {
 		}
 
 		function blogs_for_rebuilding() {
+
 			$sql = $this->db->prepare( "SELECT count(*) as rebuildblogs FROM {$this->network_rebuildqueue}" );
 
 			$var = $this->db->get_var( $sql );
@@ -224,10 +228,11 @@ if(!class_exists('postindexermodel')) {
 
 		function is_blog_indexable( $blog_id ) {
 
-			switch_to_blog( $blog_id );
+			$this->switch_to_blog( $blog_id );
+
 			$indexing = get_option( 'postindexer_active', 'yes' );
 
-			restore_current_blog();
+			$this->restore_current_blog();
 
 			if($indexing == 'yes') {
 				return true;
@@ -279,6 +284,23 @@ if(!class_exists('postindexermodel')) {
 
 		}
 
+		function update_blog_queue( $blog_id, $progress ) {
+
+			$this->db->update( $this->network_rebuildqueue, array('rebuild_progress' => $progress, 'rebuild_updatedate' => current_time('mysql')), array('blog_id' => $blog_id) );
+
+		}
+
+		function get_highest_post_for_blog( $blog_id ) {
+
+			$this->switch_to_blog( $blog_id );
+
+			$max_id = $this->db->get_var( $this->db->prepare( "SELECT MAX(ID) as max_id FROM {$this->db->posts}" ) );
+
+			$this->restore_current_blog();
+
+			return $max_id;
+		}
+
 		function is_post_indexable( $post_id, $blog_id ) {
 
 		}
@@ -303,6 +325,24 @@ if(!class_exists('postindexermodel')) {
 				$sql .= implode(',', $dup);
 
 				return $this->db->query( $this->db->prepare( $sql, $query ) );
+
+		}
+
+		function switch_to_blog( $blog_id ) {
+
+			if( $blog_id != $this->on_blog_id ) {
+				$this->on_blog_id = $blog_id;
+				switch_to_blog( $blog_id );
+			}
+
+		}
+
+		function restore_current_blog() {
+
+			if( $this->on_blog_id != 0 ) {
+				$this->on_blog_id = 0;
+				restore_current_blog();
+			}
 
 		}
 
