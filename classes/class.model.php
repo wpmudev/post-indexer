@@ -31,6 +31,8 @@ if(!class_exists('postindexermodel')) {
 		// variable to identify if we've switched blogs or not
 		var $on_blog_id = 0;
 
+		var $global_post_types;
+
 		function postindexermodel() {
 			$this->__construct();
 		}
@@ -56,6 +58,9 @@ if(!class_exists('postindexermodel')) {
 				update_site_option('postindexer_version', $this->build);
 				$this->build_indexer_tables( $version );
 			}
+
+			// Set the global / default post types that we will be using
+			$this->global_post_types = get_site_option( 'postindexer_globalposttypes', array( 'post' ) );
 
 		}
 
@@ -232,6 +237,31 @@ if(!class_exists('postindexermodel')) {
 
 			$indexing = get_option( 'postindexer_active', 'yes' );
 
+			if($indexing == 'yes') {
+
+				$blog_archived = get_blog_status( $blog_id, 'archived');
+				$blog_mature = get_blog_status( $blog_id, 'mature');
+				$blog_spam = get_blog_status( $blog_id, 'spam');
+				$blog_deleted = get_blog_status( $blog_id, 'deleted');
+
+				if($blog_archived == '1') {
+					$indexing = 'no';
+				}
+
+				if($blog_mature == '1') {
+					$indexing = 'no';
+				}
+
+				if($blog_spam == '1') {
+					$indexing = 'no';
+				}
+
+				if($blog_deleted == '1') {
+					$indexing = 'no';
+				}
+
+			}
+
 			$this->restore_current_blog();
 
 			if($indexing == 'yes') {
@@ -262,6 +292,7 @@ if(!class_exists('postindexermodel')) {
 
 			// Queue the site for rebuilding
 			$this->rebuild_blog( $blog_id );
+
 		}
 
 		function remove_indexed_entries_for_blog( $blog_id ) {
@@ -290,68 +321,93 @@ if(!class_exists('postindexermodel')) {
 
 		}
 
-		function get_highest_post_for_blog( $blog_id ) {
+		function get_highest_post_for_blog( $blog_id = false ) {
 
-			$this->switch_to_blog( $blog_id );
+			if($blog_id !== false) $this->switch_to_blog( $blog_id );
 
 			$max_id = $this->db->get_var( $this->db->prepare( "SELECT MAX(ID) as max_id FROM {$this->db->posts}" ) );
 
-			$this->restore_current_blog();
+			if($blog_id !== false) $this->restore_current_blog();
 
 			return $max_id;
 		}
 
-		function get_posts_for_indexing( $blog_id, $switch = true ) {
+		function get_posts_for_indexing( $blog_id = false, $startat = 0 ) {
 
-			if($switch) $this->switch_to_blog( $blog_id );
+			if($blog_id !== false) $this->switch_to_blog( $blog_id );
 
-			$posttypes = get_option( 'postindexer_posttypes', array( 'post' ) );
+			$posttypes = get_option( 'postindexer_posttypes', $this->global_post_types );
 			// Get the first five posts to work through that are published, in the selected post types and not password protected
-			$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID <= %d AND post_status = 'publish' AND post_type IN ('" . implode("','", $posttypes) . "') AND post_password = '' ORDER BY ID DESC LIMIT 5", $item->rebuild_progress );
+			$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID <= %d AND post_status IN ('publish','inherit') AND post_type IN ('" . implode("','", $posttypes) . "') AND post_password = '' ORDER BY ID DESC LIMIT %d", $startat, PI_CRON_POST_PROCESS_SECONDPASS );
+
 			$posts = $this->db->get_results( $sql, ARRAY_A );
 
-			if($switch) $this->restore_current_blog();
+			if($blog_id !== false) $this->restore_current_blog();
 
 			return $posts;
 		}
 
-		function get_postmeta_for_indexing( $post_id, $switch = true ) {
+		function get_post_for_indexing( $post_id, $blog_id = false ) {
 
-			if($switch) $this->switch_to_blog( $blog_id );
+			if($blog_id !== false) $this->switch_to_blog( $blog_id );
+
+			$posttypes = get_option( 'postindexer_posttypes', $this->global_post_types );
+			// Get the first five posts to work through that are published, in the selected post types and not password protected
+			$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d AND post_status IN ('publish','inherit') AND post_type IN ('" . implode("','", $posttypes) . "') AND post_password = ''", $post_id );
+			$post = $this->db->get_row( $sql, ARRAY_A );
+
+			if($blog_id !== false) $this->restore_current_blog();
+
+			return $post;
+		}
+
+		function get_postmeta_for_indexing( $post_id, $blog_id = false ) {
+
+			if($blog_id !== false) $this->switch_to_blog( $blog_id );
 
 			// Get the post meta for this local post
-			$metasql = $this->db->prepare( "SELECT * FROM {$this->db->postmeta} WHERE post_id = %d AND meta_key NOT IN ('_edit_last', '_edit_lock')", $post_id );
+			$metasql = $this->db->prepare( "SELECT * FROM {$this->db->postmeta} WHERE post_id = %d AND meta_key NOT IN ('_edit_last', '_edit_lock', '_encloseme', '_pingme')", $post_id );
 			$meta = $this->db->get_results( $metasql, ARRAY_A );
 
-			if($switch) $this->restore_current_blog();
+			if($blog_id !== false) $this->restore_current_blog();
 
 			return $meta;
 
 		}
 
-		function get_taxonomy_for_indexing( $post_id, $switch = true ) {
+		function get_taxonomy_for_indexing( $post_id, $blog_id = false  ) {
 
-			if($switch) $this->switch_to_blog( $blog_id );
-
-			/*
-			SELECT t.term_id, t.name, t.slug, term_group, tt.term_taxonomy_id, tt.taxonomy, tt.description, tt.parent, tr.term_order
-			FROM wp_terms AS t INNER JOIN wp_term_taxonomy AS tt ON t.term_id = tt.term_id
-			INNER JOIN wp_term_relationships AS tr ON tt.term_taxonomy_id = tr.term_taxonomy_id
-			WHERE tr.object_id = 1
-			*/
+			if($blog_id !== false)  $this->switch_to_blog( $blog_id );
 
 			$taxsql = $this->db->prepare( "SELECT t.term_id, t.name, t.slug, t.term_group, tt.term_taxonomy_id, tt.taxonomy, tt.description, tt.parent, tr.term_order FROM {$this->db->terms} AS t INNER JOIN {$this->db->term_taxonomy} AS tt ON t.term_id = tt.term_id INNER JOIN {$this->db->term_relationships} AS tr ON tt.term_taxonomy_id = tr.term_taxonomy_id WHERE tr.object_id = %d", $post_id );
 			$tax = $this->db->get_results( $taxsql, ARRAY_A );
 
-			if($switch) $this->restore_current_blog();
+			if($blog_id !== false)  $this->restore_current_blog();
 
 			return $tax;
 
 		}
 
-		function is_post_indexable( $post_id, $blog_id ) {
+		function is_post_indexable( $post, $blog_id = false ) {
 
-			return true;
+			if($blog_id !== false) $this->switch_to_blog( $blog_id );
+
+			$posttypes = get_option( 'postindexer_posttypes', $this->global_post_types );
+
+			// Checking for inherit here as well so we can get the media attachments for the post
+			if( in_array( $post['post_type'], $posttypes ) && in_array( $post['post_status'], array('publish', 'inherit') ) && $post['post_password'] == '' ) {
+				$indexing = 'yes';
+			} else {
+				$indexing = 'no';
+			}
+
+			if($blog_id !== false) $this->restore_current_blog();
+
+			if($indexing == 'yes') {
+				return true;
+			} else {
+				return false;
+			}
 
 		}
 
@@ -365,6 +421,130 @@ if(!class_exists('postindexermodel')) {
 		function index_postmeta( $postmeta ) {
 
 			$this->insert_or_update( $this->network_postmeta, $postmeta );
+
+		}
+
+		function index_tax( $tax ) {
+
+			if( $tax['parent'] == 0 ) {
+				// There isn't a parent for this tax item so we can attempt to add it without more difficulty
+				$term_id = $this->insert_or_get_term( $tax['name'], $tax['slug'], $tax['term_group'] );
+				if(!empty($term_id)) {
+					$term_taxonomy_id = $this->insert_or_get_taxonomy( $term_id, $tax['taxonomy'], $tax['description'], $tax['parent'] );
+
+					// Now that we have the taxonomy_id and the post_id we can insert the relationship
+					$this->insert_or_update( $this->network_term_relationships, array( 'blog_id' => $tax['blog_id'], 'object_id' => $tax['object_id'], 'term_taxonomy_id' => $term_taxonomy_id, 'term_order' => $tax['term_order'] ) );
+				}
+			} else {
+				// There is a parent tax, we are not going to do anything more advanced with it, but this part of the if statement is here in case we want to later.
+				$term_id = $this->insert_or_get_term( $tax['name'], $tax['slug'], $tax['term_group'] );
+				if(!empty($term_id)) {
+					$term_taxonomy_id = $this->insert_or_get_taxonomy( $term_id, $tax['taxonomy'], $tax['description'], 0 );
+
+					// Now that we have the taxonomy_id and the post_id we can insert the relationship
+					$this->insert_or_update( $this->network_term_relationships, array( 'blog_id' => $tax['blog_id'], 'object_id' => $tax['object_id'], 'term_taxonomy_id' => $term_taxonomy_id, 'term_order' => $tax['term_order'] ) );
+				}
+			}
+
+		}
+
+		function remove_postmeta_for_post( $post_id, $blog_id = false ) {
+
+			if( $blog_id == false ) {
+				$blog_id = $this->db->blogid;
+			}
+
+			// Remove all the networked postmeta for the blog id
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_postmeta} WHERE blog_id = %d AND post_id = %d", $blog_id, $post_id ) );
+
+		}
+
+		function remove_term_relationships_for_post( $post_id, $blog_id = false ) {
+
+			if( $blog_id == false ) {
+				$blog_id = $this->db->blogid;
+			}
+
+			// Remove all the networked term relationship information for the blog_id
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_term_relationships} WHERE blog_id = %d AND object_id = %d", $blog_id, $post_id ) );
+
+		}
+
+		function remove_indexed_entry_for_blog( $post_id, $blog_id = false ) {
+
+			if( $blog_id == false ) {
+				$blog_id = $this->db->blogid;
+			}
+
+			// Remove all the networked posts for the blog id
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_posts} WHERE BLOG_ID = %d AND ID = %d", $blog_id, $post_id ) );
+
+			// Remove all the networked postmeta for the blog id
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_postmeta} WHERE blog_id = %d AND post_id = %d", $blog_id, $post_id ) );
+
+			// Remove all the networked term relationship information for the blog_id
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_term_relationships} WHERE blog_id = %d AND object_id = %d", $blog_id, $post_id ) );
+
+		}
+
+		function remove_orphaned_postmeta_entries() {
+
+			//$sql = $this->db->prepare( "DELETE FROM {$this->network_postmeta} WHERE " );
+
+		}
+
+		function remove_orphaned_tax_entries() {
+
+			// Remove any taxonomy entries that aren't in a relationship
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_term_taxonomy} WHERE term_taxonomy_id NOT IN ( SELECT term_taxonomy_id FROM {$this->network_term_relationships} );" ) );
+
+			// Remove any terms that aren't in a taxonomy
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_terms} WHERE term_id NOT IN ( SELECT term_id FROM {$this->network_term_taxonomy} );" ) );
+
+		}
+
+		function recalculate_tax_counts() {
+
+			// Calculate and update the counts for the tax terms
+			$sql = $this->db->prepare( "SELECT tr.term_taxonomy_id, count(*) as calculatedcount, tt.count FROM {$this->network_term_relationships} AS tr INNER JOIN {$this->network_term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id GROUP BY tr.term_taxonomy_id HAVING calculatedcount != tt.count" );
+
+			$counts = $this->db->get_results( $sql, ARRAY_A );
+			if(!empty( $counts )) {
+				foreach( $counts as $count ) {
+					$this->db->update( $this->network_term_taxonomy, array( 'count' => $count['calculatedcount'] ), array( 'term_taxonomy_id' => $count['term_taxonomy_id'] ) );
+				}
+			}
+
+		}
+
+		// Insert taxonomy term
+		function insert_or_get_term( $name, $slug, $term_group ) {
+
+			$sql = $this->db->prepare( "SELECT term_id FROM {$this->network_terms} WHERE name = %s AND slug = %s AND term_group = %d", $name, $slug, $term_group );
+			$term_id = $this->db->get_var( $sql );
+
+			if( empty($term_id) ) {
+				// We need to insert the term as we don't have one
+				$this->db->insert( $this->network_terms, array( 'name' => $name, 'slug' => $slug, 'term_group' => $term_group ) );
+				$term_id = $this->db->insert_id;
+			}
+
+			return $term_id;
+
+		}
+
+		function insert_or_get_taxonomy( $term_id, $taxonomy, $description, $parent ) {
+
+			$sql = $this->db->prepare( "SELECT term_taxonomy_id FROM {$this->network_term_taxonomy} WHERE term_id = %d AND taxonomy = %s AND description = %s AND parent = %d",$term_id, $taxonomy, $description, $parent );
+			$term_taxonomy_id = $this->db->get_var( $sql );
+
+			if(empty($term_taxonomy_id)) {
+				// We nned to insert the taxonomy as we don't have one
+				$this->db->insert( $this->network_term_taxonomy, array( 'term_id' => $term_id, 'taxonomy' => $taxonomy, 'description' => $description, 'parent' => $parent, 'count' => 1 ) );
+				$term_taxonomy_id = $this->db->insert_id;
+			}
+
+			return $term_taxonomy_id;
 
 		}
 
@@ -393,7 +573,7 @@ if(!class_exists('postindexermodel')) {
 
 		function switch_to_blog( $blog_id ) {
 
-			if( $blog_id != $this->on_blog_id ) {
+			if( $blog_id != $this->db->blogid ) {
 				$this->on_blog_id = $blog_id;
 				switch_to_blog( $blog_id );
 			}
