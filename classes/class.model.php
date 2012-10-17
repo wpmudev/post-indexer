@@ -496,17 +496,17 @@ if(!class_exists('postindexermodel')) {
 		function remove_orphaned_tax_entries() {
 
 			// Remove any taxonomy entries that aren't in a relationship
-			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_term_taxonomy} WHERE term_taxonomy_id NOT IN ( SELECT term_taxonomy_id FROM {$this->network_term_relationships} );" ) );
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_term_taxonomy} WHERE term_taxonomy_id NOT IN ( SELECT term_taxonomy_id FROM {$this->network_term_relationships} ) LIMIT %d", PI_CRON_TIDY_DELETE_LIMIT ) );
 
 			// Remove any terms that aren't in a taxonomy
-			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_terms} WHERE term_id NOT IN ( SELECT term_id FROM {$this->network_term_taxonomy} );" ) );
+			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_terms} WHERE term_id NOT IN ( SELECT term_id FROM {$this->network_term_taxonomy} ) LIMIT %d", PI_CRON_TIDY_DELETE_LIMIT ) );
 
 		}
 
 		function recalculate_tax_counts() {
 
 			// Calculate and update the counts for the tax terms
-			$sql = $this->db->prepare( "SELECT tr.term_taxonomy_id, count(*) as calculatedcount, tt.count FROM {$this->network_term_relationships} AS tr INNER JOIN {$this->network_term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id GROUP BY tr.term_taxonomy_id HAVING calculatedcount != tt.count" );
+			$sql = $this->db->prepare( "SELECT tr.term_taxonomy_id, count(*) as calculatedcount, tt.count FROM {$this->network_term_relationships} AS tr INNER JOIN {$this->network_term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id GROUP BY tr.term_taxonomy_id HAVING calculatedcount != tt.count LIMIT %d", PI_CRON_TIDY_COUNT_LIMIT );
 
 			$counts = $this->db->get_results( $sql, ARRAY_A );
 			if(!empty( $counts )) {
