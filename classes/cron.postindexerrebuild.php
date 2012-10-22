@@ -29,6 +29,7 @@ if(!class_exists('postindexercron')) {
 
 			add_action( 'postindexer_tagtidy_cron', array( &$this, 'process_tidy_tags') );
 			add_action( 'postindexer_postmetatidy_cron', array( &$this, 'process_tidy_postmeta') );
+			add_action( 'postindexer_agedpoststidy_cron', array( &$this, 'process_tidy_agedposts') );
 
 		}
 
@@ -188,6 +189,8 @@ if(!class_exists('postindexercron')) {
 			// Recalculate the counts for the remaining tax entries
 			$this->model->recalculate_tax_counts();
 
+			$this->debug_message( __("Post Indexer Tag Tidy : Finished Cron to tidy up Taxonomy", "postindexer") );
+
 		}
 
 		function process_tidy_postmeta() {
@@ -196,6 +199,23 @@ if(!class_exists('postindexercron')) {
 			$this->debug_message( __("Post Indexer Postmeta Tidy : Running Cron to tidy up Postmeta", "postindexer") );
 			// Remove any orphaned postmeta entries from the table
 			$this->model->remove_orphaned_postmeta_entries();
+
+			$this->debug_message( __("Post Indexer Postmeta Tidy : Finished Cron to tidy up Postmeta", "postindexer") );
+
+		}
+
+		function process_tidy_agedposts() {
+
+			// Hourly tidy up of old posts
+			$this->debug_message( __("Post Indexer Aged Posts Tidy : Running Cron to tidy up Old Posts", "postindexer") );
+			// Remove any posts and associated information older than a specified period of time
+
+			// The default is to remove posts from the index when they are over a year old
+			$agedposts = get_site_option( 'postindexer_agedposts', array( 'agedunit' => 1, 'agedperiod' => 'year' ) );
+
+			$this->model->remove_posts_older_than( $agedposts['agedunit'], $agedposts['agedperiod'] );
+
+			$this->debug_message( __("Post Indexer Aged Posts Tidy : Finished Cron to tidy up Old Posts", "postindexer") );
 
 		}
 
@@ -227,6 +247,10 @@ if(!class_exists('postindexercron')) {
 
 			if ( !wp_next_scheduled( 'postindexer_postmetatidy_cron' ) ) {
 					wp_schedule_event(time(), 'hourly', 'postindexer_postmetatidy_cron');
+			}
+
+			if ( !wp_next_scheduled( 'postindexer_agedpoststidy_cron' ) ) {
+					wp_schedule_event(time(), 'hourly', 'postindexer_agedpoststidy_cron');
 			}
 
 		}

@@ -264,6 +264,8 @@ if(!class_exists('postindexermodel')) {
 
 			$this->restore_current_blog();
 
+			$indexing = apply_filters('postindexer_is_blog_indexable', $indexing, $blog_id);
+
 			if($indexing == 'yes') {
 				return true;
 			} else {
@@ -403,6 +405,8 @@ if(!class_exists('postindexermodel')) {
 
 			if($blog_id !== false) $this->restore_current_blog();
 
+			$indexing = apply_filters('postindexer_is_post_indexable', $indexing, $post, $blog_id);
+
 			if($indexing == 'yes') {
 				return true;
 			} else {
@@ -503,6 +507,29 @@ if(!class_exists('postindexermodel')) {
 
 		}
 
+		function remove_posts_older_than( $unit, $period ) {
+
+			switch($period) {
+				case 'hour':
+				case 'day':
+				case 'week':
+				case 'month':
+				case 'year':
+								$period = strtoupper($period);
+			}
+
+			$sql = $this->db->prepare( "SELECT BLOG_ID, ID FROM wp_network_posts WHERE DATE_ADD(post_date, INTERVAL %d " . $period . ") < CURRENT_DATE() LIMIT %d", $unit, PI_CRON_TIDY_DELETE_LIMIT );
+			$posts = $this->db->get_results( $sql );
+
+			if(!empty($posts)) {
+				foreach($posts as $post) {
+					$this->remove_indexed_entry_for_blog( $post->ID, $post->BLOG_ID );
+				}
+			}
+
+
+		}
+
 		function recalculate_tax_counts() {
 
 			// Calculate and update the counts for the tax terms
@@ -585,6 +612,42 @@ if(!class_exists('postindexermodel')) {
 			if( $this->on_blog_id != 0 ) {
 				$this->on_blog_id = 0;
 				restore_current_blog();
+			}
+
+		}
+
+		// Useful functions
+		function &get_post( $blog_id, $network_post_id ) {
+
+			$sql = $this->db->prepare( "SELECT * FROM {$this->network_posts} WHERE BLOG_ID = %d AND ID = %d", $blog_id, $network_post_id );
+			$results = $this->db->get_row( $sql, OBJECT );
+
+			return $results;
+
+		}
+
+		function term_is_tag( $term ) {
+
+			$sql = $this->db->prepare( "SELECT taxonomy FROM {$this->network_term_taxonomy} AS tt INNER JOIN {$this->network_terms} AS t ON tt.term_id = t.term_id WHERE t.slug = %s", $term );
+			$taxonomy = $this->db->get_var( $sql );
+
+			if(!empty($taxonomy) && $taxonomy == 'post_tag') {
+				return true;
+			} else {
+				return false;
+			}
+
+		}
+
+		function term_is_category( $term ) {
+
+			$sql = $this->db->prepare( "SELECT taxonomy FROM {$this->network_term_taxonomy} AS tt INNER JOIN {$this->network_terms} AS t ON tt.term_id = t.term_id WHERE t.slug = %s", $term );
+			$taxonomy = $this->db->get_var( $sql );
+
+			if(!empty($taxonomy) && $taxonomy == 'category') {
+				return true;
+			} else {
+				return false;
 			}
 
 		}

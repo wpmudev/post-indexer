@@ -13,10 +13,10 @@
  * @param string $var The variable key to retrieve.
  * @return mixed
  */
-function get_query_var($var) {
-	global $wp_query;
+function network_get_query_var($var) {
+	global $network_query;
 
-	return $wp_query->get($var);
+	return $network_query->get($var);
 }
 
 /**
@@ -29,9 +29,9 @@ function get_query_var($var) {
  *
  * @return object
  */
-function get_queried_object() {
-	global $wp_query;
-	return $wp_query->get_queried_object();
+function network_get_queried_object() {
+	global $network_query;
+	return $network_query->get_queried_object();
 }
 
 /**
@@ -44,9 +44,9 @@ function get_queried_object() {
  *
  * @return int
  */
-function get_queried_object_id() {
-	global $wp_query;
-	return $wp_query->get_queried_object_id();
+function network_get_queried_object_id() {
+	global $network_query;
+	return $network_query->get_queried_object_id();
 }
 
 /**
@@ -60,10 +60,10 @@ function get_queried_object_id() {
  * @param mixed $value
  * @return null
  */
-function set_query_var($var, $value) {
-	global $wp_query;
+function network_set_query_var($var, $value) {
+	global $network_query;
 
-	return $wp_query->set($var, $value);
+	return $network_query->set($var, $value);
 }
 
 /**
@@ -78,10 +78,10 @@ function set_query_var($var, $value) {
  * @param string $query
  * @return array List of posts
  */
-function &query_posts($query) {
-	unset($GLOBALS['wp_query']);
-	$GLOBALS['wp_query'] = new WP_Query();
-	return $GLOBALS['wp_query']->query($query);
+function &network_query_posts($query) {
+	unset($GLOBALS['network_query']);
+	$GLOBALS['network_query'] = new Network_Query();
+	return $GLOBALS['network_query']->query($query);
 }
 
 /**
@@ -94,10 +94,10 @@ function &query_posts($query) {
  * @since 2.3.0
  * @uses $wp_query
  */
-function wp_reset_query() {
-	unset($GLOBALS['wp_query']);
-	$GLOBALS['wp_query'] = $GLOBALS['wp_the_query'];
-	wp_reset_postdata();
+function network_reset_query() {
+	unset($GLOBALS['network_query']);
+	$GLOBALS['network_query'] = $GLOBALS['network_query'];
+	network_reset_postdata();
 }
 
 /**
@@ -107,11 +107,11 @@ function wp_reset_query() {
  * @since 3.0.0
  * @uses $wp_query
  */
-function wp_reset_postdata() {
-	global $wp_query;
-	if ( !empty($wp_query->post) ) {
-		$GLOBALS['post'] = $wp_query->post;
-		setup_postdata($wp_query->post);
+function network_reset_postdata() {
+	global $network_query;
+	if ( !empty($network_query->post) ) {
+		$GLOBALS['networkpost'] = $network_query->post;
+		network_setup_postdata($network_query->post);
 	}
 }
 
@@ -130,15 +130,15 @@ function wp_reset_postdata() {
  *
  * @return bool
  */
-function is_archive() {
-	global $wp_query;
+function network_is_archive() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_archive();
+	return $network_query->is_archive();
 }
 
 /**
@@ -151,15 +151,15 @@ function is_archive() {
  * @param mixed $post_types Optional. Post type or array of posts types to check against.
  * @return bool
  */
-function is_post_type_archive( $post_types = '' ) {
-	global $wp_query;
+function network_is_post_type_archive( $post_types = '' ) {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_post_type_archive( $post_types );
+	return $network_query->is_post_type_archive( $post_types );
 }
 
 /**
@@ -171,15 +171,15 @@ function is_post_type_archive( $post_types = '' ) {
  *
  * @return bool
  */
-function is_attachment() {
-	global $wp_query;
+function network_is_attachment() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_attachment();
+	return $network_query->is_attachment();
 }
 
 /**
@@ -195,15 +195,15 @@ function is_attachment() {
  * @param mixed $author Optional. User ID, nickname, nicename, or array of User IDs, nicknames, and nicenames
  * @return bool
  */
-function is_author( $author = '' ) {
-	global $wp_query;
+function network_is_author( $author = '' ) {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_author( $author );
+	return $network_query->is_author( $author );
 }
 
 /**
@@ -219,15 +219,15 @@ function is_author( $author = '' ) {
  * @param mixed $category Optional. Category ID, name, slug, or array of Category IDs, names, and slugs.
  * @return bool
  */
-function is_category( $category = '' ) {
-	global $wp_query;
+function network_is_category( $category = '' ) {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_category( $category );
+	return $network_query->is_category( $category );
 }
 
 /**
@@ -243,15 +243,15 @@ function is_category( $category = '' ) {
  * @param mixed $slug Optional. Tag slug or array of slugs.
  * @return bool
  */
-function is_tag( $slug = '' ) {
-	global $wp_query;
+function network_is_tag( $slug = '' ) {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_tag( $slug );
+	return $network_query->is_tag( $slug );
 }
 
 /**
@@ -272,15 +272,15 @@ function is_tag( $slug = '' ) {
  * @param mixed $term Optional. Term ID, name, slug or array of Term IDs, names, and slugs.
  * @return bool
  */
-function is_tax( $taxonomy = '', $term = '' ) {
-	global $wp_query;
+function network_is_tax( $taxonomy = '', $term = '' ) {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_tax( $taxonomy, $term );
+	return $network_query->is_tax( $taxonomy, $term );
 }
 
 /**
@@ -292,15 +292,15 @@ function is_tax( $taxonomy = '', $term = '' ) {
  *
  * @return bool
  */
-function is_comments_popup() {
-	global $wp_query;
+function network_is_comments_popup() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_comments_popup();
+	return $network_query->is_comments_popup();
 }
 
 /**
@@ -312,15 +312,15 @@ function is_comments_popup() {
  *
  * @return bool
  */
-function is_date() {
-	global $wp_query;
+function network_is_date() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_date();
+	return $network_query->is_date();
 }
 
 /**
@@ -332,15 +332,15 @@ function is_date() {
  *
  * @return bool
  */
-function is_day() {
-	global $wp_query;
+function network_is_day() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_day();
+	return $network_query->is_day();
 }
 
 /**
@@ -353,15 +353,15 @@ function is_day() {
  * @param string|array $feeds Optional feed types to check.
  * @return bool
  */
-function is_feed( $feeds = '' ) {
-	global $wp_query;
+function network_is_feed( $feeds = '' ) {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_feed( $feeds );
+	return $network_query->is_feed( $feeds );
 }
 
 /**
@@ -373,15 +373,15 @@ function is_feed( $feeds = '' ) {
  *
  * @return bool
  */
-function is_comment_feed() {
-	global $wp_query;
+function network_is_comment_feed() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_comment_feed();
+	return $network_query->is_comment_feed();
 }
 
 /**
@@ -403,15 +403,15 @@ function is_comment_feed() {
  *
  * @return bool True, if front of site.
  */
-function is_front_page() {
-	global $wp_query;
+function network_is_front_page() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_front_page();
+	return $network_query->is_front_page();
 }
 
 /**
@@ -432,15 +432,15 @@ function is_front_page() {
  *
  * @return bool True if blog view homepage.
  */
-function is_home() {
-	global $wp_query;
+function network_is_home() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_home();
+	return $network_query->is_home();
 }
 
 /**
@@ -452,15 +452,15 @@ function is_home() {
  *
  * @return bool
  */
-function is_month() {
-	global $wp_query;
+function network_is_month() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_month();
+	return $network_query->is_month();
 }
 
 /**
@@ -479,15 +479,15 @@ function is_month() {
  * @param mixed $page Page ID, title, slug, or array of such.
  * @return bool
  */
-function is_page( $page = '' ) {
-	global $wp_query;
+function network_is_page( $page = '' ) {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_page( $page );
+	return $network_query->is_page( $page );
 }
 
 /**
@@ -499,15 +499,15 @@ function is_page( $page = '' ) {
  *
  * @return bool
  */
-function is_paged() {
-	global $wp_query;
+function network_is_paged() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_paged();
+	return $network_query->is_paged();
 }
 
 /**
@@ -519,15 +519,15 @@ function is_paged() {
  *
  * @return bool
  */
-function is_preview() {
-	global $wp_query;
+function network_is_preview() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_preview();
+	return $network_query->is_preview();
 }
 
 /**
@@ -539,15 +539,15 @@ function is_preview() {
  *
  * @return bool
  */
-function is_robots() {
-	global $wp_query;
+function network_is_robots() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_robots();
+	return $network_query->is_robots();
 }
 
 /**
@@ -559,15 +559,15 @@ function is_robots() {
  *
  * @return bool
  */
-function is_search() {
-	global $wp_query;
+function network_is_search() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_search();
+	return $network_query->is_search();
 }
 
 /**
@@ -588,15 +588,15 @@ function is_search() {
  * @param mixed $post Post ID, title, slug, or array of such.
  * @return bool
  */
-function is_single( $post = '' ) {
-	global $wp_query;
+function network_is_single( $post = '' ) {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_single( $post );
+	return $network_query->is_single( $post );
 }
 
 /**
@@ -615,15 +615,15 @@ function is_single( $post = '' ) {
  * @param mixed $post_types Optional. Post Type or array of Post Types
  * @return bool
  */
-function is_singular( $post_types = '' ) {
-	global $wp_query;
+function network_is_singular( $post_types = '' ) {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_singular( $post_types );
+	return $network_query->is_singular( $post_types );
 }
 
 /**
@@ -635,15 +635,15 @@ function is_singular( $post_types = '' ) {
  *
  * @return bool
  */
-function is_time() {
-	global $wp_query;
+function network_is_time() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_time();
+	return $network_query->is_time();
 }
 
 /**
@@ -655,15 +655,15 @@ function is_time() {
  *
  * @return bool
  */
-function is_trackback() {
-	global $wp_query;
+function network_is_trackback() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_trackback();
+	return $network_query->is_trackback();
 }
 
 /**
@@ -675,15 +675,15 @@ function is_trackback() {
  *
  * @return bool
  */
-function is_year() {
-	global $wp_query;
+function network_is_year() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_year();
+	return $network_query->is_year();
 }
 
 /**
@@ -695,15 +695,15 @@ function is_year() {
  *
  * @return bool
  */
-function is_404() {
-	global $wp_query;
+function network_is_404() {
+	global $network_query;
 
-	if ( ! isset( $wp_query ) ) {
+	if ( ! isset( $network_query ) ) {
 		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
 		return false;
 	}
 
-	return $wp_query->is_404();
+	return $network_query->is_404();
 }
 
 /**
@@ -713,9 +713,9 @@ function is_404() {
  *
  * @return bool
  */
-function is_main_query() {
-	global $wp_query;
-	return $wp_query->is_main_query();
+function network_is_main_query() {
+	global $network_query;
+	return $network_query->is_main_query();
 }
 
 /*
@@ -731,10 +731,10 @@ function is_main_query() {
  *
  * @return bool
  */
-function have_posts() {
-	global $wp_query;
+function network_have_posts() {
+	global $network_query;
 
-	return $wp_query->have_posts();
+	return $network_query->have_posts();
 }
 
 /**
@@ -745,10 +745,10 @@ function have_posts() {
  *
  * @return bool True if caller is within loop, false if loop hasn't started or ended.
  */
-function in_the_loop() {
-	global $wp_query;
+function network_in_the_loop() {
+	global $network_query;
 
-	return $wp_query->in_the_loop;
+	return $network_query->in_the_loop;
 }
 
 /**
@@ -760,10 +760,10 @@ function in_the_loop() {
  *
  * @return null
  */
-function rewind_posts() {
-	global $wp_query;
+function network_rewind_posts() {
+	global $network_query;
 
-	return $wp_query->rewind_posts();
+	return $network_query->rewind_posts();
 }
 
 /**
@@ -773,10 +773,10 @@ function rewind_posts() {
  * @since 1.5.0
  * @uses $wp_query
  */
-function the_post() {
-	global $wp_query;
+function network_the_post() {
+	global $network_query;
 
-	$wp_query->the_post();
+	$network_query->the_post();
 }
 
 /*
@@ -792,9 +792,9 @@ function the_post() {
  *
  * @return bool
  */
-function have_comments() {
-	global $wp_query;
-	return $wp_query->have_comments();
+function network_have_comments() {
+	global $network_query;
+	return $network_query->have_comments();
 }
 
 /**
@@ -806,9 +806,9 @@ function have_comments() {
  *
  * @return object
  */
-function the_comment() {
-	global $wp_query;
-	return $wp_query->the_comment();
+function network_the_comment() {
+	global $network_query;
+	return $network_query->the_comment();
 }
 
 /*
@@ -822,7 +822,28 @@ function the_comment() {
  *
  * @since 1.5.0
  */
-class WP_Query {
+class Network_Query {
+
+	/*
+	*	Network query tables
+	*/
+	// tables list
+	var $oldtables =  array( 'site_posts', 'term_counts', 'site_terms', 'site_term_relationships' );
+	var $tables = array( 'network_posts', 'network_rebuildqueue', 'network_postmeta', 'network_terms', 'network_term_taxonomy', 'network_term_relationships' );
+
+	// old table variables
+	var $site_posts;
+	var $term_counts;
+	var $site_terms;
+	var $site_term_relationships;
+
+	// new table variables
+	var $network_posts;
+	var $network_rebuildqueue;
+	var $network_postmeta;
+	var $network_terms;
+	var $network_term_taxonomy;
+	var $network_term_relationships;
 
 	/**
 	 * Query vars set by the user
@@ -1390,6 +1411,7 @@ class WP_Query {
 			, 's'
 			, 'sentence'
 			, 'fields'
+			, 'blog_id'
 		);
 
 		foreach ( $keys as $key ) {
@@ -1429,6 +1451,8 @@ class WP_Query {
 
 		if ( ! empty($qv['robots']) )
 			$this->is_robots = true;
+
+		$qv['blog_id'] = absint($qv['blog_id']);
 
 		$qv['p'] =  absint($qv['p']);
 		$qv['page_id'] =  absint($qv['page_id']);
@@ -1663,7 +1687,7 @@ class WP_Query {
 		$this->query_vars_hash = md5( serialize( $this->query_vars ) );
 		$this->query_vars_changed = false;
 
-		do_action_ref_array('parse_query', array(&$this));
+		do_action_ref_array('network_parse_query', array(&$this));
 	}
 
 	/*
@@ -1847,7 +1871,7 @@ class WP_Query {
 			);
 		}
 
-		$this->tax_query = new WP_Tax_Query( $tax_query );
+		$this->tax_query = new Network_Tax_Query( $tax_query );
 	}
 
 	/**
@@ -1911,7 +1935,7 @@ class WP_Query {
 
 		$this->parse_query();
 
-		do_action_ref_array('pre_get_posts', array(&$this));
+		do_action_ref_array('pre_network_get_posts', array(&$this));
 
 		// Shorthand.
 		$q = &$this->query_vars;
@@ -2023,48 +2047,48 @@ class WP_Query {
 
 		switch ( $q['fields'] ) {
 			case 'ids':
-				$fields = "$wpdb->posts.ID";
+				$fields = "$this->network_posts.ID";
 				break;
 			case 'id=>parent':
-				$fields = "$wpdb->posts.ID, $wpdb->posts.post_parent";
+				$fields = "$this->network_posts.ID, $this->network_posts.post_parent";
 				break;
 			default:
-				$fields = "$wpdb->posts.*";
+				$fields = "$this->network_posts.*";
 		}
 
 		// If a month is specified in the querystring, load that month
 		if ( $q['m'] ) {
 			$q['m'] = '' . preg_replace('|[^0-9]|', '', $q['m']);
-			$where .= " AND YEAR($wpdb->posts.post_date)=" . substr($q['m'], 0, 4);
+			$where .= " AND YEAR($this->network_posts.post_date)=" . substr($q['m'], 0, 4);
 			if ( strlen($q['m']) > 5 )
-				$where .= " AND MONTH($wpdb->posts.post_date)=" . substr($q['m'], 4, 2);
+				$where .= " AND MONTH($this->network_posts.post_date)=" . substr($q['m'], 4, 2);
 			if ( strlen($q['m']) > 7 )
-				$where .= " AND DAYOFMONTH($wpdb->posts.post_date)=" . substr($q['m'], 6, 2);
+				$where .= " AND DAYOFMONTH($this->network_posts.post_date)=" . substr($q['m'], 6, 2);
 			if ( strlen($q['m']) > 9 )
-				$where .= " AND HOUR($wpdb->posts.post_date)=" . substr($q['m'], 8, 2);
+				$where .= " AND HOUR($this->network_posts.post_date)=" . substr($q['m'], 8, 2);
 			if ( strlen($q['m']) > 11 )
-				$where .= " AND MINUTE($wpdb->posts.post_date)=" . substr($q['m'], 10, 2);
+				$where .= " AND MINUTE($this->network_posts.post_date)=" . substr($q['m'], 10, 2);
 			if ( strlen($q['m']) > 13 )
-				$where .= " AND SECOND($wpdb->posts.post_date)=" . substr($q['m'], 12, 2);
+				$where .= " AND SECOND($this->network_posts.post_date)=" . substr($q['m'], 12, 2);
 		}
 
 		if ( '' !== $q['hour'] )
-			$where .= " AND HOUR($wpdb->posts.post_date)='" . $q['hour'] . "'";
+			$where .= " AND HOUR($this->network_posts.post_date)='" . $q['hour'] . "'";
 
 		if ( '' !== $q['minute'] )
-			$where .= " AND MINUTE($wpdb->posts.post_date)='" . $q['minute'] . "'";
+			$where .= " AND MINUTE($this->network_posts.post_date)='" . $q['minute'] . "'";
 
 		if ( '' !== $q['second'] )
-			$where .= " AND SECOND($wpdb->posts.post_date)='" . $q['second'] . "'";
+			$where .= " AND SECOND($this->network_posts.post_date)='" . $q['second'] . "'";
 
 		if ( $q['year'] )
-			$where .= " AND YEAR($wpdb->posts.post_date)='" . $q['year'] . "'";
+			$where .= " AND YEAR($this->network_posts.post_date)='" . $q['year'] . "'";
 
 		if ( $q['monthnum'] )
-			$where .= " AND MONTH($wpdb->posts.post_date)='" . $q['monthnum'] . "'";
+			$where .= " AND MONTH($this->network_posts.post_date)='" . $q['monthnum'] . "'";
 
 		if ( $q['day'] )
-			$where .= " AND DAYOFMONTH($wpdb->posts.post_date)='" . $q['day'] . "'";
+			$where .= " AND DAYOFMONTH($this->network_posts.post_date)='" . $q['day'] . "'";
 
 		// If we've got a post_type AND its not "any" post_type.
 		if ( !empty($q['post_type']) && 'any' != $q['post_type'] ) {
@@ -2090,7 +2114,7 @@ class WP_Query {
 
 		if ( '' != $q['name'] ) {
 			$q['name'] = sanitize_title_for_query( $q['name'] );
-			$where .= " AND $wpdb->posts.post_name = '" . $q['name'] . "'";
+			$where .= " AND $this->network_posts.post_name = '" . $q['name'] . "'";
 		} elseif ( '' != $q['pagename'] ) {
 			if ( isset($this->queried_object_id) ) {
 				$reqpage = $this->queried_object_id;
@@ -2119,7 +2143,7 @@ class WP_Query {
 			if  ( ('page' != get_option('show_on_front') ) || empty($page_for_posts) || ( $reqpage != $page_for_posts ) ) {
 				$q['pagename'] = sanitize_title_for_query( wp_basename( $q['pagename'] ) );
 				$q['name'] = $q['pagename'];
-				$where .= " AND ($wpdb->posts.ID = '$reqpage')";
+				$where .= " AND ($wpdb->network_posts.ID = '$reqpage')";
 				$reqpage_obj = get_page($reqpage);
 				if ( is_object($reqpage_obj) && 'attachment' == $reqpage_obj->post_type ) {
 					$this->is_attachment = true;
@@ -2131,11 +2155,11 @@ class WP_Query {
 		} elseif ( '' != $q['attachment'] ) {
 			$q['attachment'] = sanitize_title_for_query( wp_basename( $q['attachment'] ) );
 			$q['name'] = $q['attachment'];
-			$where .= " AND $wpdb->posts.post_name = '" . $q['attachment'] . "'";
+			$where .= " AND $this->network_posts.post_name = '" . $q['attachment'] . "'";
 		}
 
 		if ( $q['w'] )
-			$where .= ' AND ' . _wp_mysql_week( "`$wpdb->posts`.`post_date`" ) . " = '" . $q['w'] . "'";
+			$where .= ' AND ' . _wp_mysql_week( "`$this->network_posts`.`post_date`" ) . " = '" . $q['w'] . "'";
 
 		if ( intval($q['comments_popup']) )
 			$q['p'] = absint($q['comments_popup']);
@@ -2146,22 +2170,22 @@ class WP_Query {
 
 		// If a post number is specified, load that post
 		if ( $q['p'] ) {
-			$where .= " AND {$wpdb->posts}.ID = " . $q['p'];
+			$where .= " AND {$this->network_posts}.ID = " . $q['p'];
 		} elseif ( $q['post__in'] ) {
 			$post__in = implode(',', array_map( 'absint', $q['post__in'] ));
-			$where .= " AND {$wpdb->posts}.ID IN ($post__in)";
+			$where .= " AND {$this->network_posts}.ID IN ($post__in)";
 		} elseif ( $q['post__not_in'] ) {
 			$post__not_in = implode(',',  array_map( 'absint', $q['post__not_in'] ));
-			$where .= " AND {$wpdb->posts}.ID NOT IN ($post__not_in)";
+			$where .= " AND {$this->network_posts}.ID NOT IN ($post__not_in)";
 		}
 
 		if ( is_numeric($q['post_parent']) )
-			$where .= $wpdb->prepare( " AND $wpdb->posts.post_parent = %d ", $q['post_parent'] );
+			$where .= $wpdb->prepare( " AND $this->network_posts.post_parent = %d ", $q['post_parent'] );
 
 		if ( $q['page_id'] ) {
 			if  ( ('page' != get_option('show_on_front') ) || ( $q['page_id'] != get_option('page_for_posts') ) ) {
 				$q['p'] = $q['page_id'];
-				$where = " AND {$wpdb->posts}.ID = " . $q['page_id'];
+				$where = " AND {$this->network_posts}.ID = " . $q['page_id'];
 			}
 		}
 
@@ -2179,14 +2203,14 @@ class WP_Query {
 			$searchand = '';
 			foreach( (array) $q['search_terms'] as $term ) {
 				$term = esc_sql( like_escape( $term ) );
-				$search .= "{$searchand}(($wpdb->posts.post_title LIKE '{$n}{$term}{$n}') OR ($wpdb->posts.post_content LIKE '{$n}{$term}{$n}'))";
+				$search .= "{$searchand}(($this->network_posts.post_title LIKE '{$n}{$term}{$n}') OR ($this->network_posts.post_content LIKE '{$n}{$term}{$n}'))";
 				$searchand = ' AND ';
 			}
 
 			if ( !empty($search) ) {
 				$search = " AND ({$search}) ";
 				if ( !is_user_logged_in() )
-					$search .= " AND ($wpdb->posts.post_password = '') ";
+					$search .= " AND ($this->network_posts.post_password = '') ";
 			}
 		}
 
@@ -2197,7 +2221,7 @@ class WP_Query {
 		if ( !$this->is_singular ) {
 			$this->parse_tax_query( $q );
 
-			$clauses = $this->tax_query->get_sql( $wpdb->posts, 'ID' );
+			$clauses = $this->tax_query->get_sql( $this->network_posts, 'ID' );
 
 			$join .= $clauses['join'];
 			$where .= $clauses['where'];
@@ -2256,7 +2280,7 @@ class WP_Query {
 		}
 
 		if ( !empty( $this->tax_query->queries ) || !empty( $this->meta_query->queries ) ) {
-			$groupby = "{$wpdb->posts}.ID";
+			$groupby = "{$this->network_posts}.ID";
 		}
 
 		// Author/user stuff
@@ -2278,7 +2302,7 @@ class WP_Query {
 			$author_array = preg_split('/[,\s]+/', $q['author']);
 			$_author_array = array();
 			foreach ( $author_array as $key => $_author )
-				$_author_array[] = "$wpdb->posts.post_author " . $eq . ' ' . absint($_author);
+				$_author_array[] = "$this->network_posts.post_author " . $eq . ' ' . absint($_author);
 			$whichauthor .= ' AND (' . implode(" $andor ", $_author_array) . ')';
 			unset($author_array, $_author_array);
 		}
@@ -2298,22 +2322,28 @@ class WP_Query {
 			$q['author'] = get_user_by('slug', $q['author_name']);
 			if ( $q['author'] )
 				$q['author'] = $q['author']->ID;
-			$whichauthor .= " AND ($wpdb->posts.post_author = " . absint($q['author']) . ')';
+			$whichauthor .= " AND ($this->network_posts.post_author = " . absint($q['author']) . ')';
 		}
 
 		// MIME-Type stuff for attachment browsing
 
 		if ( isset( $q['post_mime_type'] ) && '' != $q['post_mime_type'] )
-			$whichmimetype = wp_post_mime_type_where( $q['post_mime_type'], $wpdb->posts );
+			$whichmimetype = wp_post_mime_type_where( $q['post_mime_type'], $this->network_posts );
 
 		$where .= $search . $whichauthor . $whichmimetype;
 
 		if ( empty($q['order']) || ((strtoupper($q['order']) != 'ASC') && (strtoupper($q['order']) != 'DESC')) )
 			$q['order'] = 'DESC';
 
+
+		// blog id
+		if( !empty( $q['blog_id'] ) ) {
+				$where .= " AND ($this->network_posts.BLOG_ID = " . absint($q['blog_id']) . ')';
+		}
+
 		// Order by
 		if ( empty($q['orderby']) ) {
-			$orderby = "$wpdb->posts.post_date " . $q['order'];
+			$orderby = "$this->network_posts.post_date " . $q['order'];
 		} elseif ( 'none' == $q['orderby'] ) {
 			$orderby = '';
 		} else {
@@ -2335,26 +2365,26 @@ class WP_Query {
 
 				switch ( $orderby ) {
 					case 'menu_order':
-						$orderby = "$wpdb->posts.menu_order";
+						$orderby = "$this->network_posts.menu_order";
 						break;
 					case 'ID':
-						$orderby = "$wpdb->posts.ID";
+						$orderby = "$this->network_posts.ID";
 						break;
 					case 'rand':
 						$orderby = 'RAND()';
 						break;
 					case $q['meta_key']:
 					case 'meta_value':
-						$orderby = "$wpdb->postmeta.meta_value";
+						$orderby = "$this->network_postmeta.meta_value";
 						break;
 					case 'meta_value_num':
-						$orderby = "$wpdb->postmeta.meta_value+0";
+						$orderby = "$this->network_postmeta.meta_value+0";
 						break;
 					case 'comment_count':
-						$orderby = "$wpdb->posts.comment_count";
+						$orderby = "$this->network_posts.comment_count";
 						break;
 					default:
-						$orderby = "$wpdb->posts.post_" . $orderby;
+						$orderby = "$this->network_posts.post_" . $orderby;
 				}
 
 				$orderby_array[] = $orderby;
@@ -2362,7 +2392,7 @@ class WP_Query {
 			$orderby = implode( ',', $orderby_array );
 
 			if ( empty( $orderby ) )
-				$orderby = "$wpdb->posts.post_date ".$q['order'];
+				$orderby = "$this->network_posts.post_date ".$q['order'];
 			else
 				$orderby .= " {$q['order']}";
 		}
@@ -2378,20 +2408,20 @@ class WP_Query {
 		if ( 'any' == $post_type ) {
 			$in_search_post_types = get_post_types( array('exclude_from_search' => false) );
 			if ( ! empty( $in_search_post_types ) )
-				$where .= $wpdb->prepare(" AND $wpdb->posts.post_type IN ('" . join("', '", $in_search_post_types ) . "')");
+				$where .= $wpdb->prepare(" AND $this->network_posts.post_type IN ('" . join("', '", $in_search_post_types ) . "')");
 		} elseif ( !empty( $post_type ) && is_array( $post_type ) ) {
-			$where .= " AND $wpdb->posts.post_type IN ('" . join("', '", $post_type) . "')";
+			$where .= " AND $this->network_posts.post_type IN ('" . join("', '", $post_type) . "')";
 		} elseif ( ! empty( $post_type ) ) {
-			$where .= " AND $wpdb->posts.post_type = '$post_type'";
+			$where .= " AND $this->network_posts.post_type = '$post_type'";
 			$post_type_object = get_post_type_object ( $post_type );
 		} elseif ( $this->is_attachment ) {
-			$where .= " AND $wpdb->posts.post_type = 'attachment'";
+			$where .= " AND $this->network_posts.post_type = 'attachment'";
 			$post_type_object = get_post_type_object ( 'attachment' );
 		} elseif ( $this->is_page ) {
-			$where .= " AND $wpdb->posts.post_type = 'page'";
+			$where .= " AND $this->network_posts.post_type = 'page'";
 			$post_type_object = get_post_type_object ( 'page' );
 		} else {
-			$where .= " AND $wpdb->posts.post_type = 'post'";
+			$where .= " AND $this->network_posts.post_type = 'post'";
 			$post_type_object = get_post_type_object ( 'post' );
 		}
 
@@ -2417,14 +2447,14 @@ class WP_Query {
 			$e_status = array();
 			if ( in_array('any', $q_status) ) {
 				foreach ( get_post_stati( array('exclude_from_search' => true) ) as $status )
-					$e_status[] = "$wpdb->posts.post_status <> '$status'";
+					$e_status[] = "$this->network_posts.post_status <> '$status'";
 			} else {
 				foreach ( get_post_stati() as $status ) {
 					if ( in_array( $status, $q_status ) ) {
 						if ( 'private' == $status )
-							$p_status[] = "$wpdb->posts.post_status = '$status'";
+							$p_status[] = "$this->network_posts.post_status = '$status'";
 						else
-							$r_status[] = "$wpdb->posts.post_status = '$status'";
+							$r_status[] = "$this->network_posts.post_status = '$status'";
 					}
 				}
 			}
@@ -2439,53 +2469,53 @@ class WP_Query {
 			}
 			if ( !empty($r_status) ) {
 				if ( !empty($q['perm'] ) && 'editable' == $q['perm'] && !current_user_can($edit_others_cap) )
-					$statuswheres[] = "($wpdb->posts.post_author = $user_ID " . "AND (" . join( ' OR ', $r_status ) . "))";
+					$statuswheres[] = "($this->network_posts.post_author = $user_ID " . "AND (" . join( ' OR ', $r_status ) . "))";
 				else
 					$statuswheres[] = "(" . join( ' OR ', $r_status ) . ")";
 			}
 			if ( !empty($p_status) ) {
 				if ( !empty($q['perm'] ) && 'readable' == $q['perm'] && !current_user_can($read_private_cap) )
-					$statuswheres[] = "($wpdb->posts.post_author = $user_ID " . "AND (" . join( ' OR ', $p_status ) . "))";
+					$statuswheres[] = "($this->network_posts.post_author = $user_ID " . "AND (" . join( ' OR ', $p_status ) . "))";
 				else
 					$statuswheres[] = "(" . join( ' OR ', $p_status ) . ")";
 			}
 			if ( $post_status_join ) {
-				$join .= " LEFT JOIN $wpdb->posts AS p2 ON ($wpdb->posts.post_parent = p2.ID) ";
+				$join .= " LEFT JOIN $this->network_posts AS p2 ON ($this->network_posts.post_parent = p2.ID) ";
 				foreach ( $statuswheres as $index => $statuswhere )
-					$statuswheres[$index] = "($statuswhere OR ($wpdb->posts.post_status = 'inherit' AND " . str_replace($wpdb->posts, 'p2', $statuswhere) . "))";
+					$statuswheres[$index] = "($statuswhere OR ($this->network_posts.post_status = 'inherit' AND " . str_replace($wpdb->posts, 'p2', $statuswhere) . "))";
 			}
 			foreach ( $statuswheres as $statuswhere )
 				$where .= " AND $statuswhere";
 		} elseif ( !$this->is_singular ) {
-			$where .= " AND ($wpdb->posts.post_status = 'publish'";
+			$where .= " AND ($this->network_posts.post_status = 'publish'";
 
 			// Add public states.
 			$public_states = get_post_stati( array('public' => true) );
 			foreach ( (array) $public_states as $state ) {
 				if ( 'publish' == $state ) // Publish is hard-coded above.
 					continue;
-				$where .= " OR $wpdb->posts.post_status = '$state'";
+				$where .= " OR $this->network_posts.post_status = '$state'";
 			}
 
 			if ( $this->is_admin ) {
 				// Add protected states that should show in the admin all list.
 				$admin_all_states = get_post_stati( array('protected' => true, 'show_in_admin_all_list' => true) );
 				foreach ( (array) $admin_all_states as $state )
-					$where .= " OR $wpdb->posts.post_status = '$state'";
+					$where .= " OR $this->network_posts.post_status = '$state'";
 			}
 
 			if ( is_user_logged_in() ) {
 				// Add private states that are limited to viewing by the author of a post or someone who has caps to read private states.
 				$private_states = get_post_stati( array('private' => true) );
 				foreach ( (array) $private_states as $state )
-					$where .= current_user_can( $read_private_cap ) ? " OR $wpdb->posts.post_status = '$state'" : " OR $wpdb->posts.post_author = $user_ID AND $wpdb->posts.post_status = '$state'";
+					$where .= current_user_can( $read_private_cap ) ? " OR $this->network_posts.post_status = '$state'" : " OR $this->network_posts.post_author = $user_ID AND $this->network_posts.post_status = '$state'";
 			}
 
 			$where .= ')';
 		}
 
 		if ( !empty( $this->meta_query->queries ) ) {
-			$clauses = $this->meta_query->get_sql( 'post', $wpdb->posts, 'ID', $this );
+			$clauses = $this->meta_query->get_sql( 'post', $this->network_posts, 'ID', $this );
 			$join .= $clauses['join'];
 			$where .= $clauses['where'];
 		}
@@ -2513,9 +2543,10 @@ class WP_Query {
 		}
 
 		// Comments feeds
+		/*
 		if ( $this->is_comment_feed && ( $this->is_archive || $this->is_search || !$this->is_singular ) ) {
 			if ( $this->is_archive || $this->is_search ) {
-				$cjoin = "JOIN $wpdb->posts ON ($wpdb->comments.comment_post_ID = $wpdb->posts.ID) $join ";
+				$cjoin = "JOIN $this->posts ON ($this->comments.comment_post_ID = $this->posts.ID) $join ";
 				$cwhere = "WHERE comment_approved = '1' $where";
 				$cgroupby = "$wpdb->comments.comment_id";
 			} else { // Other non singular e.g. front
@@ -2549,6 +2580,7 @@ class WP_Query {
 			else
 				$where = "AND 0";
 		}
+		*/
 
 		$pieces = array( 'where', 'groupby', 'join', 'orderby', 'distinct', 'fields', 'limits' );
 
@@ -2597,7 +2629,7 @@ class WP_Query {
 		if ( !$q['no_found_rows'] && !empty($limits) )
 			$found_rows = 'SQL_CALC_FOUND_ROWS';
 
-		$this->request = $old_request = "SELECT $found_rows $distinct $fields FROM $wpdb->posts $join WHERE 1=1 $where $groupby $orderby $limits";
+		$this->request = $old_request = "SELECT $found_rows $distinct $fields FROM $this->network_posts $join WHERE 1=1 $where $groupby $orderby $limits";
 
 		if ( !$q['suppress_filters'] ) {
 			$this->request = apply_filters_ref_array( 'posts_request', array( $this->request, &$this ) );
@@ -2619,24 +2651,28 @@ class WP_Query {
 			return $r;
 		}
 
-		$split_the_query = ( $old_request == $this->request && "$wpdb->posts.*" == $fields && !empty( $limits ) && $q['posts_per_page'] < 500 );
+		$split_the_query = ( $old_request == $this->request && "$this->network_posts.*" == $fields && !empty( $limits ) && $q['posts_per_page'] < 500 );
 		$split_the_query = apply_filters( 'split_the_query', $split_the_query, $this );
 
 		if ( $split_the_query ) {
 			// First get the IDs and then fill in the objects
 
-			$this->request = "SELECT $found_rows $distinct $wpdb->posts.ID FROM $wpdb->posts $join WHERE 1=1 $where $groupby $orderby $limits";
+			$this->request = "SELECT $found_rows $distinct $this->network_posts.BLOG_ID, $this->network_posts.ID FROM $this->network_posts $join WHERE 1=1 $where $groupby $orderby $limits";
 
 			$this->request = apply_filters( 'posts_request_ids', $this->request, $this );
 
-			$ids = $wpdb->get_col( $this->request );
+			$ids = $wpdb->get_results( $this->request );
 
 			if ( $ids ) {
 				$this->set_found_posts( $q, $limits );
 
 				_prime_post_caches( $ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 
-				$this->posts = array_map( 'get_post', $ids );
+				foreach($ids as $id) {
+					$this->posts[] = network_get_post( $id->BLOG_ID, $id->ID );
+				}
+
+				//$this->posts = array_map( 'get_post', $ids );
 			} else {
 				$this->found_posts = $this->max_num_pages = 0;
 				$this->posts = array();
@@ -2650,6 +2686,7 @@ class WP_Query {
 		if ( !$q['suppress_filters'] )
 			$this->posts = apply_filters_ref_array('posts_results', array( $this->posts, &$this ) );
 
+		/*
 		if ( !empty($this->posts) && $this->is_comment_feed && $this->is_singular ) {
 			$cjoin = apply_filters_ref_array('comment_feed_join', array( '', &$this ) );
 			$cwhere = apply_filters_ref_array('comment_feed_where', array( "WHERE comment_post_ID = '{$this->posts[0]->ID}' AND comment_approved = '1'", &$this ) );
@@ -2662,88 +2699,7 @@ class WP_Query {
 			$this->comments = $wpdb->get_results($comments_request);
 			$this->comment_count = count($this->comments);
 		}
-
-		// Check post status to determine if post should be displayed.
-		if ( !empty($this->posts) && ($this->is_single || $this->is_page) ) {
-			$status = get_post_status($this->posts[0]);
-			$post_status_obj = get_post_status_object($status);
-			//$type = get_post_type($this->posts[0]);
-			if ( !$post_status_obj->public ) {
-				if ( ! is_user_logged_in() ) {
-					// User must be logged in to view unpublished posts.
-					$this->posts = array();
-				} else {
-					if  ( $post_status_obj->protected ) {
-						// User must have edit permissions on the draft to preview.
-						if ( ! current_user_can($edit_cap, $this->posts[0]->ID) ) {
-							$this->posts = array();
-						} else {
-							$this->is_preview = true;
-							if ( 'future' != $status )
-								$this->posts[0]->post_date = current_time('mysql');
-						}
-					} elseif ( $post_status_obj->private ) {
-						if ( ! current_user_can($read_cap, $this->posts[0]->ID) )
-							$this->posts = array();
-					} else {
-						$this->posts = array();
-					}
-				}
-			}
-
-			if ( $this->is_preview && $this->posts && current_user_can( $edit_cap, $this->posts[0]->ID ) )
-				$this->posts[0] = apply_filters_ref_array('the_preview', array( $this->posts[0], &$this ));
-		}
-
-		// Put sticky posts at the top of the posts array
-		$sticky_posts = get_option('sticky_posts');
-		if ( $this->is_home && $page <= 1 && is_array($sticky_posts) && !empty($sticky_posts) && !$q['ignore_sticky_posts'] ) {
-			$num_posts = count($this->posts);
-			$sticky_offset = 0;
-			// Loop over posts and relocate stickies to the front.
-			for ( $i = 0; $i < $num_posts; $i++ ) {
-				if ( in_array($this->posts[$i]->ID, $sticky_posts) ) {
-					$sticky_post = $this->posts[$i];
-					// Remove sticky from current position
-					array_splice($this->posts, $i, 1);
-					// Move to front, after other stickies
-					array_splice($this->posts, $sticky_offset, 0, array($sticky_post));
-					// Increment the sticky offset. The next sticky will be placed at this offset.
-					$sticky_offset++;
-					// Remove post from sticky posts array
-					$offset = array_search($sticky_post->ID, $sticky_posts);
-					unset( $sticky_posts[$offset] );
-				}
-			}
-
-			// If any posts have been excluded specifically, Ignore those that are sticky.
-			if ( !empty($sticky_posts) && !empty($q['post__not_in']) )
-				$sticky_posts = array_diff($sticky_posts, $q['post__not_in']);
-
-			// Fetch sticky posts that weren't in the query results
-			if ( !empty($sticky_posts) ) {
-				$stickies__in = implode(',', array_map( 'absint', $sticky_posts ));
-				// honor post type(s) if not set to any
-				$stickies_where = '';
-				if ( 'any' != $post_type && '' != $post_type ) {
-					if ( is_array( $post_type ) ) {
-						$post_types = join( "', '", $post_type );
-					} else {
-						$post_types = $post_type;
-					}
-					$stickies_where = "AND $wpdb->posts.post_type IN ('" . $post_types . "')";
-				}
-
-				$stickies = $wpdb->get_results( "SELECT * FROM $wpdb->posts WHERE $wpdb->posts.ID IN ($stickies__in) $stickies_where" );
-				foreach ( $stickies as $sticky_post ) {
-					// Ignore sticky posts the current user cannot read or are not published.
-					if ( 'publish' != $sticky_post->post_status )
-						continue;
-					array_splice($this->posts, $sticky_offset, 0, array($sticky_post));
-					$sticky_offset++;
-				}
-			}
-		}
+		*/
 
 		if ( !$q['suppress_filters'] )
 			$this->posts = apply_filters_ref_array('the_posts', array( $this->posts, &$this ) );
@@ -2805,14 +2761,14 @@ class WP_Query {
 	 * @uses do_action_ref_array() Calls 'loop_start' if loop has just started
 	 */
 	function the_post() {
-		global $post;
+		global $network_post;
 		$this->in_the_loop = true;
 
 		if ( $this->current_post == -1 ) // loop has just started
 			do_action_ref_array('loop_start', array(&$this));
 
-		$post = $this->next_post();
-		setup_postdata($post);
+		$network_post = $this->next_post();
+		setup_postdata($network_post);
 	}
 
 	/**
@@ -3016,6 +2972,19 @@ class WP_Query {
 	 * @return WP_Query
 	 */
 	function __construct($query = '') {
+
+		global $wpdb;
+
+		foreach($this->tables as $table) {
+			$this->$table = $wpdb->base_prefix . $table;
+		}
+
+		if(defined('PI_LOAD_OLD_TABLES') && PI_LOAD_OLD_TABLES === true ) {
+			foreach($this->oldtables as $table) {
+				$this->$table = $wpdb->base_prefix . $table;
+			}
+		}
+
 		if ( ! empty($query) ) {
 			$this->query($query);
 		}
@@ -3509,64 +3478,300 @@ class WP_Query {
 	}
 }
 
+
 /**
- * Redirect old slugs to the correct permalink.
+ * Network version of the Container class for a multiple taxonomy query.
  *
- * Attempts to find the current slug from the past slugs.
- *
- * @since 2.1.0
- * @uses $wp_query
- * @uses $wpdb
- *
- * @return null If no link is found, null is returned.
+ * @since 3.1.0
  */
-function wp_old_slug_redirect() {
-	global $wp_query;
-	if ( is_404() && '' != $wp_query->query_vars['name'] ) :
+class Network_Tax_Query {
+
+	// tables list
+	var $oldtables =  array( 'site_posts', 'term_counts', 'site_terms', 'site_term_relationships' );
+	var $tables = array( 'network_posts', 'network_rebuildqueue', 'network_postmeta', 'network_terms', 'network_term_taxonomy', 'network_term_relationships' );
+
+	// old table variables
+	var $site_posts;
+	var $term_counts;
+	var $site_terms;
+	var $site_term_relationships;
+
+	// new table variables
+	var $network_posts;
+	var $network_rebuildqueue;
+	var $network_postmeta;
+	var $network_terms;
+	var $network_term_taxonomy;
+	var $network_term_relationships;
+
+	/**
+	 * List of taxonomy queries. A single taxonomy query is an associative array:
+	 * - 'taxonomy' string The taxonomy being queried
+	 * - 'terms' string|array The list of terms
+	 * - 'field' string (optional) Which term field is being used.
+	 *		Possible values: 'term_id', 'slug' or 'name'
+	 *		Default: 'term_id'
+	 * - 'operator' string (optional)
+	 *		Possible values: 'AND', 'IN' or 'NOT IN'.
+	 *		Default: 'IN'
+	 * - 'include_children' bool (optional) Whether to include child terms.
+	 *		Default: true
+	 *
+	 * @since 3.1.0
+	 * @access public
+	 * @var array
+	 */
+	public $queries = array();
+
+	/**
+	 * The relation between the queries. Can be one of 'AND' or 'OR'.
+	 *
+	 * @since 3.1.0
+	 * @access public
+	 * @var string
+	 */
+	public $relation;
+
+	/**
+	 * Standard response when the query should not return any rows.
+	 *
+	 * @since 3.2.0
+	 * @access private
+	 * @var string
+	 */
+	private static $no_results = array( 'join' => '', 'where' => ' AND 0 = 1' );
+
+	/**
+	 * Constructor.
+	 *
+	 * Parses a compact tax query and sets defaults.
+	 *
+	 * @since 3.1.0
+	 * @access public
+	 *
+	 * @param array $tax_query A compact tax query:
+	 *  array(
+	 *    'relation' => 'OR',
+	 *    array(
+	 *      'taxonomy' => 'tax1',
+	 *      'terms' => array( 'term1', 'term2' ),
+	 *      'field' => 'slug',
+	 *    ),
+	 *    array(
+	 *      'taxonomy' => 'tax2',
+	 *      'terms' => array( 'term-a', 'term-b' ),
+	 *      'field' => 'slug',
+	 *    ),
+	 *  )
+	 */
+	public function __construct( $tax_query ) {
+
 		global $wpdb;
 
-		// Guess the current post_type based on the query vars.
-		if ( get_query_var('post_type') )
-			$post_type = get_query_var('post_type');
-		elseif ( !empty($wp_query->query_vars['pagename']) )
-			$post_type = 'page';
-		else
-			$post_type = 'post';
-
-		if ( is_array( $post_type ) ) {
-			if ( count( $post_type ) > 1 )
-				return;
-			$post_type = array_shift( $post_type );
+		foreach($this->tables as $table) {
+			$this->$table = $wpdb->base_prefix . $table;
 		}
 
-		// Do not attempt redirect for hierarchical post types
-		if ( is_post_type_hierarchical( $post_type ) )
+		if(defined('PI_LOAD_OLD_TABLES') && PI_LOAD_OLD_TABLES === true ) {
+			foreach($this->oldtables as $table) {
+				$this->$table = $wpdb->base_prefix . $table;
+			}
+		}
+
+		if ( isset( $tax_query['relation'] ) && strtoupper( $tax_query['relation'] ) == 'OR' ) {
+			$this->relation = 'OR';
+		} else {
+			$this->relation = 'AND';
+		}
+
+		$defaults = array(
+			'taxonomy' => '',
+			'terms' => array(),
+			'include_children' => true,
+			'field' => 'term_id',
+			'operator' => 'IN',
+		);
+
+		foreach ( $tax_query as $query ) {
+			if ( ! is_array( $query ) )
+				continue;
+
+			$query = array_merge( $defaults, $query );
+
+			$query['terms'] = (array) $query['terms'];
+
+			$this->queries[] = $query;
+		}
+	}
+
+	/**
+	 * Generates SQL clauses to be appended to a main query.
+	 *
+	 * @since 3.1.0
+	 * @access public
+	 *
+	 * @param string $primary_table
+	 * @param string $primary_id_column
+	 * @return array
+	 */
+	public function get_sql( $primary_table, $primary_id_column ) {
+		global $wpdb;
+
+		$join = '';
+		$where = array();
+		$i = 0;
+
+		foreach ( $this->queries as $query ) {
+			$this->clean_query( $query );
+
+			if ( is_wp_error( $query ) ) {
+				return self::$no_results;
+			}
+
+			extract( $query );
+
+			if ( 'IN' == $operator ) {
+
+				if ( empty( $terms ) ) {
+					if ( 'OR' == $this->relation )
+						continue;
+					else
+						return self::$no_results;
+				}
+
+				$terms = implode( ',', $terms );
+
+				$alias = $i ? 'tt' . $i : $this->network_term_relationships;
+
+				$join .= " INNER JOIN $this->network_term_relationships";
+				$join .= $i ? " AS $alias" : '';
+				$join .= " ON ($primary_table.$primary_id_column = $alias.object_id)";
+
+				$where[] = "$alias.term_taxonomy_id $operator ($terms)";
+			} elseif ( 'NOT IN' == $operator ) {
+
+				if ( empty( $terms ) )
+					continue;
+
+				$terms = implode( ',', $terms );
+
+				$where[] = "$primary_table.$primary_id_column NOT IN (
+					SELECT object_id
+					FROM $this->network_term_relationships
+					WHERE term_taxonomy_id IN ($terms)
+				)";
+			} elseif ( 'AND' == $operator ) {
+
+				if ( empty( $terms ) )
+					continue;
+
+				$num_terms = count( $terms );
+
+				$terms = implode( ',', $terms );
+
+				$where[] = "(
+					SELECT COUNT(1)
+					FROM $this->network_term_relationships
+					WHERE term_taxonomy_id IN ($terms)
+					AND object_id = $primary_table.$primary_id_column
+				) = $num_terms";
+			}
+
+			$i++;
+		}
+
+		if ( !empty( $where ) )
+			$where = ' AND ( ' . implode( " $this->relation ", $where ) . ' )';
+		else
+			$where = '';
+
+		return compact( 'join', 'where' );
+	}
+
+	/**
+	 * Validates a single query.
+	 *
+	 * @since 3.2.0
+	 * @access private
+	 *
+	 * @param array &$query The single query
+	 */
+	private function clean_query( &$query ) {
+		if ( ! taxonomy_exists( $query['taxonomy'] ) ) {
+			$query = new WP_Error( 'Invalid taxonomy' );
+			return;
+		}
+
+		$query['terms'] = array_unique( (array) $query['terms'] );
+
+		if ( is_taxonomy_hierarchical( $query['taxonomy'] ) && $query['include_children'] ) {
+			$this->transform_query( $query, 'term_id' );
+
+			if ( is_wp_error( $query ) )
+				return;
+
+			$children = array();
+			foreach ( $query['terms'] as $term ) {
+				$children = array_merge( $children, get_term_children( $term, $query['taxonomy'] ) );
+				$children[] = $term;
+			}
+			$query['terms'] = $children;
+		}
+
+		$this->transform_query( $query, 'term_taxonomy_id' );
+	}
+
+	/**
+	 * Transforms a single query, from one field to another.
+	 *
+	 * @since 3.2.0
+	 * @access private
+	 *
+	 * @param array &$query The single query
+	 * @param string $resulting_field The resulting field
+	 */
+	private function transform_query( &$query, $resulting_field ) {
+		global $wpdb;
+
+		if ( empty( $query['terms'] ) )
 			return;
 
-		$query = $wpdb->prepare("SELECT post_id FROM $wpdb->postmeta, $wpdb->posts WHERE ID = post_id AND post_type = %s AND meta_key = '_wp_old_slug' AND meta_value = %s", $post_type, $wp_query->query_vars['name']);
-
-		// if year, monthnum, or day have been specified, make our query more precise
-		// just in case there are multiple identical _wp_old_slug values
-		if ( '' != $wp_query->query_vars['year'] )
-			$query .= $wpdb->prepare(" AND YEAR(post_date) = %d", $wp_query->query_vars['year']);
-		if ( '' != $wp_query->query_vars['monthnum'] )
-			$query .= $wpdb->prepare(" AND MONTH(post_date) = %d", $wp_query->query_vars['monthnum']);
-		if ( '' != $wp_query->query_vars['day'] )
-			$query .= $wpdb->prepare(" AND DAYOFMONTH(post_date) = %d", $wp_query->query_vars['day']);
-
-		$id = (int) $wpdb->get_var($query);
-
-		if ( ! $id )
+		if ( $query['field'] == $resulting_field )
 			return;
 
-		$link = get_permalink($id);
+		$resulting_field = esc_sql( $resulting_field );
 
-		if ( !$link )
+		switch ( $query['field'] ) {
+			case 'slug':
+			case 'name':
+				$terms = "'" . implode( "','", array_map( 'sanitize_title_for_query', $query['terms'] ) ) . "'";
+				$terms = $wpdb->get_col( "
+					SELECT $this->network_term_taxonomy.$resulting_field
+					FROM $this->network_term_taxonomy
+					INNER JOIN $this->network_terms USING (term_id)
+					WHERE taxonomy = '{$query['taxonomy']}'
+					AND $this->network_terms.{$query['field']} IN ($terms)
+				" );
+				break;
+
+			default:
+				$terms = implode( ',', array_map( 'intval', $query['terms'] ) );
+				$terms = $wpdb->get_col( "
+					SELECT $resulting_field
+					FROM $this->network_term_taxonomy
+					WHERE taxonomy = '{$query['taxonomy']}'
+					AND term_id IN ($terms)
+				" );
+		}
+
+		if ( 'AND' == $query['operator'] && count( $terms ) < count( $query['terms'] ) ) {
+			$query = new WP_Error( 'Inexistent terms' );
 			return;
+		}
 
-		wp_redirect( $link, 301 ); // Permanent redirect
-		exit;
-	endif;
+		$query['terms'] = $terms;
+		$query['field'] = $resulting_field;
+	}
 }
 
 /**
@@ -3578,7 +3783,7 @@ function wp_old_slug_redirect() {
  * @uses do_action_ref_array() Calls 'the_post'
  * @return bool True when finished.
  */
-function setup_postdata($post) {
+function network_setup_postdata($post) {
 	global $id, $authordata, $currentday, $currentmonth, $page, $pages, $multipage, $more, $numpages;
 
 	$id = (int) $post->ID;

@@ -387,6 +387,9 @@ if(!class_exists('postindexeradmin')) {
 													check_admin_referer('postindexer_update_global_options');
 													$posttypes = array_map('trim', explode("\n", $_POST['post_types'] ));
 													update_site_option( 'postindexer_globalposttypes', $posttypes );
+
+													update_site_option( 'postindexer_agedposts', array( 'agedunit' => (int) $_POST['agedunit'], 'agedperiod' => $_POST['agedperiod'] ) );
+
 													wp_safe_redirect( add_query_arg( array( 'msg' => 2 ), wp_get_referer() ) );
 													exit;
 													break;
@@ -492,8 +495,8 @@ if(!class_exists('postindexeradmin')) {
 												?>
 
 												<p class='description'><?php
-													_e('The settings below allow you to set the defaults for all the sites in your network. ','postindexer');
-													echo sprintf(__("You can override these settings on a site by site basis via the <a href=%s>Sites admin page</a>.",'postindexer'), network_admin_url('sites.php') ); ?>
+													_e('The settings below allow you to set the defaults for all the sites in your network and processing that will take place across your entire index. ','postindexer');
+													echo sprintf(__("You can override some of these settings on a site by site basis via the <a href=%s>Sites admin page</a>.",'postindexer'), network_admin_url('sites.php') ); ?>
 												</p>
 
 												<table class="form-table">
@@ -504,6 +507,34 @@ if(!class_exists('postindexeradmin')) {
 																<textarea id="post_types" name="post_types" cols="80" rows="5"><?php echo implode("\n", $this->global_post_types); ?></textarea>
 																<br/>
 																<?php _e('These are the default post types that will be indexed by the plugin. Place each post type on a seperate line.','postindexer'); ?>
+															</td>
+														</tr>
+
+														<tr valign="top">
+															<th scope="row"><label for="agedperiod"><?php _e('Remove indexed posts older than','postindexer'); ?></label></th>
+															<td>
+																<?php
+																	$agedposts = get_site_option( 'postindexer_agedposts', array( 'agedunit' => 1, 'agedperiod' => 'year' ) );
+																?>
+																<select name='agedunit'>
+																<?php
+																	for($n = 1; $n <= 365; $n++) {
+																		?>
+																		<option value='<?php echo $n; ?>' <?php selected($n, $agedposts['agedunit']); ?>><?php echo $n; ?></option>
+																		<?php
+																	}
+																?>
+																</select>&nbsp;
+																<select name='agedperiod'>
+																	<option value='hour' <?php selected('hour', $agedposts['agedperiod']); ?>><?php _e('Hour(s)','postindexer'); ?></option>
+																	<option value='day' <?php selected('day', $agedposts['agedperiod']); ?>><?php _e('Day(s)','postindexer'); ?></option>
+																	<option value='week' <?php selected('week', $agedposts['agedperiod']); ?>><?php _e('Week(s)','postindexer'); ?></option>
+																	<option value='month' <?php selected('month', $agedposts['agedperiod']); ?>><?php _e('Month(s)','postindexer'); ?></option>
+																	<option value='year' <?php selected('year', $agedposts['agedperiod']); ?>><?php _e('Year(s)','postindexer'); ?></option>
+																</select>&nbsp;
+
+																<br/>
+																<?php _e('Posts older than this time span will be removed from the global index.','postindexer'); ?>
 															</td>
 														</tr>
 													</tbody>
