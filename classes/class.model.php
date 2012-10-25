@@ -6,13 +6,13 @@ if(!class_exists('postindexermodel')) {
 
 	class postindexermodel {
 
-		var $build = 1;
+		var $build = 2;
 
 		var $db;
 
 		// tables list
 		var $oldtables =  array( 'site_posts', 'term_counts', 'site_terms', 'site_term_relationships' );
-		var $tables = array( 'network_posts', 'network_rebuildqueue', 'network_postmeta', 'network_terms', 'network_term_taxonomy', 'network_term_relationships' );
+		var $tables = array( 'network_posts', 'network_rebuildqueue', 'network_postmeta', 'network_terms', 'network_term_taxonomy', 'network_term_relationships', 'network_log' );
 
 		// old table variables
 		var $site_posts;
@@ -27,6 +27,7 @@ if(!class_exists('postindexermodel')) {
 		var $network_terms;
 		var $network_term_taxonomy;
 		var $network_term_relationships;
+		var $network_log;
 
 		// variable to identify if we've switched blogs or not
 		var $on_blog_id = 0;
@@ -68,7 +69,17 @@ if(!class_exists('postindexermodel')) {
 
 			switch( $old_version ) {
 
-				case 1:
+				case 1:		// Add in log table
+							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_log . "` (
+							  `id` bigint(11) unsigned NOT NULL AUTO_INCREMENT,
+							  `log_title` varchar(250) DEFAULT NULL,
+							  `log_details` text,
+							  `log_datetime` datetime DEFAULT NULL,
+							  PRIMARY KEY (`id`)
+							) DEFAULT CHARSET=utf8;";
+
+							$this->db->query( $sql );
+
 							break;
 
 				default:	$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_posts . "` (
@@ -160,6 +171,16 @@ if(!class_exists('postindexermodel')) {
 							  `term_order` int(11) NOT NULL DEFAULT '0',
 							  PRIMARY KEY (`blog_id`,`object_id`,`term_taxonomy_id`),
 							  KEY `term_taxonomy_id` (`term_taxonomy_id`)
+							) DEFAULT CHARSET=utf8;";
+
+							$this->db->query( $sql );
+
+							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_log . "` (
+							  `id` bigint(11) unsigned NOT NULL AUTO_INCREMENT,
+							  `log_title` varchar(250) DEFAULT NULL,
+							  `log_details` text,
+							  `log_datetime` datetime DEFAULT NULL,
+							  PRIMARY KEY (`id`)
 							) DEFAULT CHARSET=utf8;";
 
 							$this->db->query( $sql );
@@ -650,6 +671,26 @@ if(!class_exists('postindexermodel')) {
 				return false;
 			}
 
+		}
+
+		function log_message( $title, $msg ) {
+			$this->db->insert( $this->network_log, array( 'log_title' => $title, 'log_details' => $msg, 'log_datetime' => current_time('mysql') ) );
+		}
+
+		function clear_messages( $keep = 25 ) {
+
+			$ids = $this->db->get_col( $this->db->prepare( "SELECT id FROM {$this->network_log} ORDER BY id DESC LIMIT %d", $keep ) );
+			$ids = "'" . implode("','", $ids) . "'";
+
+			$sql = $this->db->prepare( "DELETE FROM {$this->network_log} WHERE id NOT IN (" . $ids . ") LIMIT %d", PI_CRON_TIDY_DELETE_LIMIT );
+
+			$this->db->query( $sql );
+		}
+
+		function get_log_messages( $show = 25 ) {
+			$sql = $this->db->prepare( "SELECT * FROM {$this->network_log} ORDER BY id DESC LIMIT %d", $show );
+
+			return $this->db->get_results( $sql );
 		}
 
 

@@ -13,3 +13,11 @@
 	margin-bottom: 10px;
 }
 
+tr.logentry.alt {
+	background-color: #eee;
+}
+
+tr.logentry {
+	border: 1px solid #ccc;
+}
+

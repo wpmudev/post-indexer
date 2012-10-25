@@ -60,6 +60,9 @@ if(!class_exists('postindexeradmin')) {
 
 			// Set the global / default post types that we will be using
 			$this->global_post_types = get_site_option( 'postindexer_globalposttypes', array( 'post' ) );
+
+			// Add the jazzy statistics information
+			add_action('postindexer_statistics', array(&$this, 'handle_statistics_page'));
 		}
 
 		//------------------------------------------------------------------------//
@@ -398,6 +401,72 @@ if(!class_exists('postindexeradmin')) {
 
 		}
 
+		function handle_statistics_page() {
+
+		}
+
+		function handle_log_page() {
+
+			?>
+			<div id="icon-edit" class="icon32 icon32-posts-post"><br></div>
+			<h2><?php _e('Post Indexer Cron Log','postindexer'); ?></h2>
+
+			<?php
+			if($this->model->blogs_for_rebuilding()) {
+				// Show a rebuilding message and timer
+				?>
+				<div id='rebuildingmessage'>
+				<?php _e('You currently have items in your indexing queue.','postindexer'); ?>
+				</div>
+				<?php
+			}
+			?>
+
+			<?php
+			if ( isset($_GET['msg']) ) {
+				echo '<div id="message" class="updated fade"><p>' . $messages[(int) $_GET['msg']] . '</p></div>';
+				$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+			}
+			?>
+
+			<form action='' method='post'>
+
+				<br/>
+				<p class='description'><?php
+					echo sprintf(__("Showing the most recent <strong>%s</strong> cron log entries.",'postindexer'), PI_CRON_DEBUG_KEEP_LAST ); ?>
+				</p>
+				<table class="form-table">
+					<tbody>
+					<?php
+						$logs = $this->model->get_log_messages( PI_CRON_DEBUG_KEEP_LAST );
+						if(!empty($logs)) {
+							$class = '';
+							foreach($logs as $log) {
+								?>
+								<tr class='logentry <?php echo $class;?>'>
+									<td valign=top><strong><?php echo $log->log_title; ?></strong><br/>
+										<?php
+										echo $log->log_details;
+										?>
+									</td>
+									<td valign=top align=right><?php echo $log->log_datetime; ?></td>
+								</tr>
+								<?php
+								if($class == '') {
+									$class = 'alt';
+								} else {
+									$class = '';
+								}
+							}
+						}
+					?>
+					</tbody>
+				</table>
+			</form>
+			<?php
+
+		}
+
 		function handle_postindexer_page() {
 
 			$messages = array();
@@ -413,6 +482,11 @@ if(!class_exists('postindexeradmin')) {
 					<?php if( has_action('postindexer_statistics') ) {
 						?>
 						<a href="settings.php?page=postindexer&amp;tab=statistics" class="nav-tab <?php if (isset($_GET['tab']) && $_GET['tab'] == 'statistics') echo 'nav-tab-active'; ?>"><?php _e('Statistics','postindexer'); ?></a>
+						<?php
+					}
+					if(defined('PI_CRON_DEBUG') && PI_CRON_DEBUG == true) {
+						?>
+						<a href="settings.php?page=postindexer&amp;tab=log" class="nav-tab <?php if (isset($_GET['tab']) && $_GET['tab'] == 'log') echo 'nav-tab-active'; ?>"><?php _e('Cron Log','postindexer'); ?></a>
 						<?php
 					}
 					?>
@@ -461,6 +535,9 @@ if(!class_exists('postindexeradmin')) {
 											break;
 
 					case 'statistics':		do_action('postindexer_statistics');
+											break;
+
+					case 'log':				$this->handle_log_page();
 											break;
 
 					case 'globaloptions':

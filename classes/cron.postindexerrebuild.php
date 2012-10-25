@@ -35,31 +35,31 @@ if(!class_exists('postindexercron')) {
 
 		function process_rebuild_firstpass() {
 
-			$this->debug_message( __("Post Indexer First Pass : Running First Pass Cron", "postindexer") );
+			$this->debug_message( __('Post Indexer First Pass','postindexer'), __("Running First Pass Cron", "postindexer") );
 
 			// First pass - loop through queue entries with a 0 in the rebuild_progress and set them up for the rebuild process
 			$queue = $this->model->get_justqueued_blogs( PI_CRON_SITE_PROCESS_FIRSTPASS );
 
 			if(!empty( $queue )) {
 
-				$this->debug_message( sprintf( __("Post Indexer First Pass : Processing %s queued items.", "postindexer"), count($queue) ) );
+				$this->debug_message( __('Post Indexer First Pass','postindexer'), sprintf( __("Processing %s queued items.", "postindexer"), count($queue) ) );
 
 				foreach($queue as $item) {
 
 					if( $this->model->is_blog_indexable( $item->blog_id ) ) {
 
-						$this->debug_message( sprintf( __("Post Indexer First Pass : Blog %s is indexable.", "postindexer" ), $item->blog_id ) );
+						$this->debug_message( __('Post Indexer First Pass','postindexer'), sprintf( __("Blog %s is indexable.", "postindexer" ), $item->blog_id ) );
 
 						// Get the highest post_id
 						$max_id = $this->model->get_highest_post_for_blog( $item->blog_id );
 						if(!empty($max_id) && $max_id > 0) {
 							// We have posts - record the highest current post id
-							$this->debug_message( sprintf( __("Post Indexer First Pass : Maximum Post ID for blog %s is %s", "postindexer"), $item->blog_id, $max_id ) );
+							$this->debug_message( __('Post Indexer First Pass','postindexer'), sprintf( __("Maximum Post ID for blog %s is %s", "postindexer"), $item->blog_id, $max_id ) );
 
 							$this->model->update_blog_queue( $item->blog_id, $max_id );
 						} else {
 							// No posts, so we'll remove it from the queue
-							$this->debug_message( sprintf( __("Post Indexer First Pass : No Posts found for blog %s - removing from queue.", "postindexer"), $item->blog_id ) );
+							$this->debug_message( __('Post Indexer First Pass','postindexer'), sprintf( __("No Posts found for blog %s - removing from queue.", "postindexer"), $item->blog_id ) );
 
 							$this->model->remove_blog_from_queue( $item->blog_id );
 						}
@@ -68,7 +68,7 @@ if(!class_exists('postindexercron')) {
 
 					} else {
 						// Remove the blog from the queue
-						$this->debug_message( sprintf( __("Post Indexer First Pass : Blog $s is NOT indexable - removing from queue.", "postindexer"), $item->blog_id ) );
+						$this->debug_message( __('Post Indexer First Pass','postindexer'), sprintf( __("Blog $s is NOT indexable - removing from queue.", "postindexer"), $item->blog_id ) );
 
 						$this->model->remove_blog_from_queue( $item->blog_id );
 					}
@@ -76,24 +76,26 @@ if(!class_exists('postindexercron')) {
 				}
 			}
 
+			$this->debug_message( __('Post Indexer First Pass','postindexer'), __("Finished First Pass Cron", "postindexer") );
+
 		}
 
 		function process_rebuild_secondpass() {
 
-			$this->debug_message( __("Post Indexer Second Pass : Running Second Pass Cron", "postindexer") );
+			$this->debug_message( __('Post Indexer Second Pass','postindexer'), __("Running Second Pass Cron", "postindexer") );
 
 			// Second pass - loop through queue entries with a on 0 in the rebuild_progress and start rebuilding
 			$queue = $this->model->get_rebuilding_blogs( PI_CRON_SITE_PROCESS_SECONDPASS );
 
 			if(!empty($queue)) {
 
-				$this->debug_message( sprintf( __("Post Indexer Second Pass : Processing %s queued items.", "postindexer"), count($queue) ) );
+				$this->debug_message( __('Post Indexer Second Pass','postindexer'), sprintf( __("Processing %s queued items.", "postindexer"), count($queue) ) );
 
 				foreach( $queue as $item ) {
 
 					if( $this->model->is_blog_indexable( $item->blog_id ) ) {
 
-						$this->debug_message( sprintf( __("Post Indexer Second Pass : Blog %s is indexable.", "postindexer"), $item->blog_id ) );
+						$this->debug_message( __('Post Indexer Second Pass','postindexer'), sprintf( __("Blog %s is indexable.", "postindexer"), $item->blog_id ) );
 
 						// Swtich to the blog so we don't have to keep doing it
 						$this->model->switch_to_blog( $item->blog_id );
@@ -101,7 +103,7 @@ if(!class_exists('postindexercron')) {
 						$posts = $this->model->get_posts_for_indexing( $item->blog_id, $item->rebuild_progress );
 						if(!empty($posts)) {
 
-							$this->debug_message( sprintf( __("Post Indexer Second Pass : Processing %s posts for blog %s", "postindexer"), count($posts), $item->blog_id ) );
+							$this->debug_message( __('Post Indexer Second Pass','postindexer'), sprintf( __("Processing %s posts for blog %s", "postindexer"), count($posts), $item->blog_id ) );
 
 							foreach($posts as $key => $post) {
 								// Check if the post should be indexed or not
@@ -149,7 +151,7 @@ if(!class_exists('postindexercron')) {
 									$this->model->update_blog_queue( $item->blog_id, $previous_id );
 								} else {
 									// We've run out of posts now so remove us from the queue
-									$this->debug_message( sprintf( __("Post Indexer Second Pass : No Posts left for blog %s - removing from queue.", "postindexer"), $item->blog_id ) );
+									$this->debug_message( __('Post Indexer Second Pass','postindexer'), sprintf( __("No Posts left for blog %s - removing from queue.", "postindexer"), $item->blog_id ) );
 
 									$this->model->remove_blog_from_queue( $item->blog_id );
 								}
@@ -157,7 +159,7 @@ if(!class_exists('postindexercron')) {
 							}
 						} else {
 							// We've run out of posts so remove our entry from the queue
-							$this->debug_message( sprintf( __("Post Indexer Second Pass : No Posts left for blog %s - removing from queue.", "postindexer"), $item->blog_id ) );
+							$this->debug_message( __('Post Indexer Second Pass','postindexer'), sprintf( __("No Posts left for blog %s - removing from queue.", "postindexer"), $item->blog_id ) );
 
 							$this->model->remove_blog_from_queue( $item->blog_id );
 						}
@@ -167,7 +169,7 @@ if(!class_exists('postindexercron')) {
 
 					} else {
 						// Remove the blog from the queue as something has changed
-						$this->debug_message( sprintf( __("Post Indexer Second Pass : Blog %s is NOT indexable - removing from queue.", "postindexer"), $item->blog_id ) );
+						$this->debug_message( __('Post Indexer Second Pass','postindexer'), sprintf( __("Blog %s is NOT indexable - removing from queue.", "postindexer"), $item->blog_id ) );
 
 						$this->model->remove_blog_from_queue( $item->blog_id );
 						// Remove any existing posts in case we've already indexed them
@@ -178,36 +180,38 @@ if(!class_exists('postindexercron')) {
 
 			}
 
+			$this->debug_message( __('Post Indexer Second Pass','postindexer'), __("Finished Second Pass Cron", "postindexer") );
+
 		}
 
 		function process_tidy_tags() {
 
 			// Hourly tidy up of tags and tag counts
-			$this->debug_message( __("Post Indexer Tag Tidy : Running Cron to tidy up Taxonomy", "postindexer") );
+			$this->debug_message( __('Post Indexer Tag Tidy','postindexer'), __("Running Cron to tidy up Taxonomy", "postindexer") );
 			// Remove any orphan tax entries from the table
 			$this->model->remove_orphaned_tax_entries();
 			// Recalculate the counts for the remaining tax entries
 			$this->model->recalculate_tax_counts();
 
-			$this->debug_message( __("Post Indexer Tag Tidy : Finished Cron to tidy up Taxonomy", "postindexer") );
+			$this->debug_message( __('Post Indexer Tag Tidy','postindexer'), __("Finished Cron to tidy up Taxonomy", "postindexer") );
 
 		}
 
 		function process_tidy_postmeta() {
 
 			// Hourly tidy up of postmeta entries
-			$this->debug_message( __("Post Indexer Postmeta Tidy : Running Cron to tidy up Postmeta", "postindexer") );
+			$this->debug_message( __('Post Indexer Postmeta Tidy','postindexer'), __("Running Cron to tidy up Postmeta", "postindexer") );
 			// Remove any orphaned postmeta entries from the table
 			$this->model->remove_orphaned_postmeta_entries();
 
-			$this->debug_message( __("Post Indexer Postmeta Tidy : Finished Cron to tidy up Postmeta", "postindexer") );
+			$this->debug_message( __('Post Indexer Postmeta Tidy','postindexer'), __("Finished Cron to tidy up Postmeta", "postindexer") );
 
 		}
 
 		function process_tidy_agedposts() {
 
 			// Hourly tidy up of old posts
-			$this->debug_message( __("Post Indexer Aged Posts Tidy : Running Cron to tidy up Old Posts", "postindexer") );
+			$this->debug_message( __('Post Indexer Aged Posts Tidy','postindexer'), __("Running Cron to tidy up Old Posts", "postindexer") );
 			// Remove any posts and associated information older than a specified period of time
 
 			// The default is to remove posts from the index when they are over a year old
@@ -215,7 +219,7 @@ if(!class_exists('postindexercron')) {
 
 			$this->model->remove_posts_older_than( $agedposts['agedunit'], $agedposts['agedperiod'] );
 
-			$this->debug_message( __("Post Indexer Aged Posts Tidy : Finished Cron to tidy up Old Posts", "postindexer") );
+			$this->debug_message( __('Post Indexer Aged Posts Tidy','postindexer'), __("Finished Cron to tidy up Old Posts", "postindexer") );
 
 		}
 
@@ -255,9 +259,10 @@ if(!class_exists('postindexercron')) {
 
 		}
 
-		function debug_message( $message ) {
+		function debug_message( $title, $message ) {
 			if( defined('PI_CRON_DEBUG') && PI_CRON_DEBUG === true && function_exists('error_log') ) {
-				error_log( $message );
+				$this->model->log_message( $title, $message );
+				$this->model->clear_messages( PI_CRON_DEBUG_KEEP_LAST );
 			}
 		}
 

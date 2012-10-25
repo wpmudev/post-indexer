@@ -2,8 +2,11 @@
 // Post indexer configuration file
 if(!defined('PI_LOAD_OLD_TABLES')) define('PI_LOAD_OLD_TABLES', true);
 
-// Send debug messages to the PHP log for the CRON
+// Send debug messages to the post indexer log for the CRON
 if(!defined('PI_CRON_DEBUG')) define('PI_CRON_DEBUG', false);
+
+// Keep the last x messages in the log
+if(!defined('PI_CRON_DEBUG_KEEP_LAST')) define('PI_CRON_DEBUG_KEEP_LAST', 25);
 
 // The number of sites to check on every CRON first pass
 if(!defined('PI_CRON_SITE_PROCESS_FIRSTPASS')) define('PI_CRON_SITE_PROCESS_FIRSTPASS', 25);
