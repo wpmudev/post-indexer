@@ -371,9 +371,23 @@ if(!class_exists('postindexeradmin')) {
 
 		function add_header_postindexer_page() {
 
+			// Enqueue the graphing library
+			wp_enqueue_script('flot_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.min.js', array('jquery'));
+			wp_enqueue_script('flot_pie_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.pie.min.js', array('jquery', 'flot_js'));
+			// Add in header for IE users
+			add_action ('admin_head', array(&$this, 'dashboard_iehead'));
+			// Add in the chart data we need for the
+			add_action ('admin_head', array(&$this, 'dashboard_chartdata'));
+
 			wp_enqueue_style('postindexernetworksettings', WP_PLUGIN_URL . '/post-indexer/css/options.postindexer.css');
 
+			wp_enqueue_script('postindexerscript', WP_PLUGIN_URL . '/post-indexer/js/options.postindexer.js', array('jquery'));
+
 			$this->process_postindexer_page();
+		}
+
+		function dashboard_iehead() {
+			echo '<!--[if lt IE 8]><script language="javascript" type="text/javascript" src="' . WP_PLUGIN_URL . '/post-indexer/js/excanvas.min.js' . '"></script><![endif]-->';
 		}
 
 		function process_postindexer_page() {
@@ -401,8 +415,329 @@ if(!class_exists('postindexeradmin')) {
 
 		}
 
+		function get_json($results) {
+			if(function_exists('json_encode')) {
+				return json_encode($results);
+			} else {
+				// PHP4 version
+				require_once(ABSPATH."wp-includes/js/tinymce/plugins/spellchecker/classes/utils/JSON.php");
+				$json_obj = new Moxiecode_JSON();
+				return $json_obj->encode($results);
+			}
+
+		}
+
+		function return_json($results) {
+
+			// Check for callback
+			if(isset($_GET['callback'])) {
+				// Add the relevant header
+				@header('Content-type: text/javascript');
+				echo addslashes($_GET['callback']) . " (";
+			} else {
+				if(isset($_GET['pretty'])) {
+					// Will output pretty version
+					@header('Content-type: text/html');
+				} else {
+					@header('Content-type: application/json');
+				}
+			}
+
+			if(function_exists('json_encode')) {
+				echo json_encode($results);
+			} else {
+				// PHP4 version
+				require_once(ABSPATH."wp-includes/js/tinymce/plugins/spellchecker/classes/utils/JSON.php");
+				$json_obj = new Moxiecode_JSON();
+				echo $json_obj->encode($results);
+			}
+
+			if(isset($_GET['callback'])) {
+				echo ")";
+			}
+
+		}
+
+		function get_data($results, $str = false) {
+
+			$data = array();
+
+			foreach( (array) $results as $key => $res) {
+				if($str) {
+					$data[] = "[ " . $key . ", '" . $res . "' ]";
+				} else {
+					$data[] = "[ " . $key . ", " . $res . " ]";
+				}
+			}
+
+			return "[ " . implode(", ", $data) . " ]";
+
+		}
+
+		function dashboard_chartdata() {
+
+			$post_type_counts = $this->model->get_summary_post_types();
+			$blog_counts = $this->model->get_summary_blog_post_type_totals();
+
+			if(!empty($post_type_counts)) {
+				$post_type_results = array();
+				$post_type_max = 0;
+
+				foreach($post_type_counts as $ptc) {
+					$post_type_results[] = array( 'label' => __($ptc->post_type,'postindexer'), 'data' => (int) $ptc->post_type_count );
+					if($ptc->post_type_count > $post_type_max) $post_type_max = $ptc->post_type_count;
+				}
+
+				$post_type_ticks = array();
+			}
+
+			// Sort out the post types for the blog
+			if(!empty($blog_counts)) {
+				$blog_counts_results = array();
+				$blog_counts_data = array();
+				$blog_count_max = 0;
+
+				$blog_type_ticks = array();
+
+				$n = 1;
+				foreach($blog_counts as $bc) {
+					if(!array_key_exists( $bc->BLOG_ID, $blog_type_ticks)) {
+						$blog_type_ticks[$bc->BLOG_ID] = array( (int) $n++, str_replace(" ", "<br/>", get_blog_option( $bc->BLOG_ID, 'blogname')) );
+					}
+					if($bc->blog_type_count > $blog_count_max) $blog_count_max = $bc->blog_type_count;
+				}
+
+				foreach($blog_counts as $bc) {
+					$val = $blog_type_ticks[$bc->BLOG_ID][0];
+					$blog_counts_results[$bc->post_type][(int) $val] = (int) $bc->blog_type_count;
+				}
+
+				foreach($blog_counts_results as $key => $value) {
+					$blog_counts_data[$key] = array( "label" => $key, "data" => $value );
+				}
+
+				$blog_counts_data = array_values($blog_counts_data);
+
+			}
+
+
+			echo "\n" . '<script type="text/javascript">';
+			echo "\n" . '/* <![CDATA[ */ ' . "\n";
+
+			echo "var posttypedata = " . $this->get_json( array( "chart" => $post_type_results ) ) . ";\n";
+			echo "var blogcountdata = [\n";
+				foreach($blog_counts_data as $bcd) {
+					echo "{label: '" . $bcd["label"] . "', data: " . $this->get_data( $bcd['data'] ) . "},\n";
+				}
+			echo "];\n";
+			echo "var blogcountinfo = " . $this->get_json( array( "ticks" => array_values($blog_type_ticks), "maxcount" => $blog_count_max  ) ) . ";\n";
+
+			echo "\n" . '/* ]]> */ ';
+			echo '</script>';
+
+		}
+
+		function dashboard_news() {
+			global $page, $action;
+
+			$plugin = get_plugin_data( WP_PLUGIN_DIR . '/post-indexer/post-indexer.php' );
+
+			?>
+			<div id="dashboard_right_now" class="postbox ">
+				<h3 class="hndle"><span><?php _e('Post Indexer Summary','postindexer'); ?></span></h3>
+				<div class="inside">
+
+					<div class="table table_content">
+						<p class="sub"><?php _e('Indexed Post Types', 'postindexer'); ?></p>
+						<?php
+							// Get the counts for the post types
+							$post_type_counts = $this->model->get_summary_post_types();
+						?>
+						<table>
+							<tbody>
+								<?php
+								$trclass = 'first';
+								foreach($post_type_counts as $ptc) {
+									?>
+									<tr class="<?php echo $trclass; ?>">
+										<td class="first b b-posts"><?php echo $ptc->post_type_count; ?></td>
+										<td class="t posts"><?php echo __($ptc->post_type, 'postindexer'); ?></td>
+									</tr>
+									<?php
+									$trclass = '';
+								}
+								?>
+							</tbody>
+						</table>
+					</div>
+
+					<div class="table table_discussion">
+						<p class="sub"><?php _e('Most Indexed Blogs', 'postindexer'); ?></p>
+						<?php
+							// Get the counts for the blogs
+							$blog_counts = $this->model->get_summary_blog_totals();
+						?>
+						<table>
+							<tbody>
+								<?php
+								$trclass = 'first';
+								foreach($blog_counts as $bc) {
+								?>
+								<tr class="<?php echo $trclass; ?>">
+									<td class="first b b-posts"><?php echo $bc->blog_count; ?></td>
+									<td class="t posts"><?php echo get_blog_option( $bc->BLOG_ID, 'blogname'); ?></td>
+								</tr>
+								<?php
+									$trclass = '';
+								}
+								?>
+							</tbody>
+						</table>
+					</div>
+
+					<br class="clear">
+
+					<p>
+						<?php echo __('You are running Post Indexer version ','postindexer') . "<strong>" . $plugin['Version'] . '</strong>'; ?>
+					</p>
+					<p>
+						<?php _e('Cron logging is : ', 'postindexer'); ?>
+						<strong>
+							<?php if(defined('PI_CRON_DEBUG') && PI_CRON_DEBUG == true) {
+								_e('Enabled', 'postindexer');
+							} else {
+								_e('Disabled', 'postindexer');
+							}
+							?>
+						</strong>
+					</p>
+
+				</div>
+			</div>
+			<?php
+		}
+
+		function dashboard_blog_stats() {
+
+			?>
+			<div id="blog-stats" class="postbox ">
+				<h3 class="hndle"><span><?php _e('Most Indexed Blogs','postindexer'); ?></span></h3>
+				<div class="inside">
+					<div id='blog-stats-chart' style='min-height: 300px;'>
+					</div>
+				</div>
+			</div>
+			<?php
+
+		}
+
+		function dashboard_post_type_stats() {
+
+			?>
+			<div id="post-type-stats" class="postbox ">
+				<h3 class="hndle"><span><?php _e('Indexed Post Types','postindexer'); ?></span></h3>
+				<div class="inside">
+					<div id='post-type-stats-chart' style='min-height: 150px;'>
+					</div>
+				</div>
+			</div>
+			<?php
+
+		}
+
+		function dashboard_rebuild_queue_stats() {
+
+			?>
+			<div id="rebuild-queue-stats" class="postbox ">
+				<h3 class="hndle"><span><?php _e('Rebuild Queue Status','postindexer'); ?></span></h3>
+				<div class="inside">
+
+
+
+				</div>
+			</div>
+			<?php
+
+		}
+
+		function dashboard_last_indexed_stats() {
+
+			?>
+			<div id="last-indexed-stats" class="postbox ">
+				<h3 class="hndle"><span><?php _e('Recently Indexed Posts','postindexer'); ?></span></h3>
+				<div class="inside">
+
+
+
+				</div>
+			</div>
+			<?php
+
+		}
+
 		function handle_statistics_page() {
 
+			add_action( 'postindexer_dashboard_left', array(&$this, 'dashboard_news') );
+			add_action( 'postindexer_dashboard_left', array(&$this, 'dashboard_blog_stats') );
+
+			add_action( 'postindexer_dashboard_right', array(&$this, 'dashboard_post_type_stats') );
+			add_action( 'postindexer_dashboard_right', array(&$this, 'dashboard_last_indexed_stats') );
+
+			if($this->model->blogs_for_rebuilding()) {
+				$rebuild_queue = true;
+				add_action( 'postindexer_dashboard_right', array(&$this, 'dashboard_rebuild_queue_stats') );
+			} else {
+				$rebuild_queue = false;
+			}
+
+			?>
+			<div id="icon-edit" class="icon32 icon32-posts-post"><br></div>
+			<h2><?php _e('Network Post Index Statistics','postindexer'); ?></h2>
+
+			<?php
+			if( $rebuild_queue ) {
+				// Show a rebuilding message and timer
+				?>
+				<div id='rebuildingmessage'>
+				<?php _e('You currently have items in your indexing queue.','postindexer'); ?>
+				</div>
+				<?php
+			}
+			?>
+
+			<div id="dashboard-widgets-wrap">
+
+			<div class="metabox-holder" id="dashboard-widgets">
+				<div style="width: 49%;" class="postbox-container">
+					<div class="meta-box-sortables ui-sortable" id="normal-sortables">
+						<?php
+						do_action( 'postindexer_dashboard_left' );
+						?>
+					</div>
+				</div>
+
+				<div style="width: 49%;" class="postbox-container">
+					<div class="meta-box-sortables ui-sortable" id="side-sortables">
+						<?php
+						do_action( 'postindexer_dashboard_right' );
+						?>
+					</div>
+				</div>
+
+				<div style="display: none; width: 49%;" class="postbox-container">
+					<div class="meta-box-sortables ui-sortable" id="column3-sortables" style="">
+					</div>
+				</div>
+
+				<div style="display: none; width: 49%;" class="postbox-container">
+					<div class="meta-box-sortables ui-sortable" id="column4-sortables" style="">
+					</div>
+				</div>
+			</div>
+
+			<div class="clear"></div>
+			</div>
+			<?php
 		}
 
 		function handle_log_page() {
@@ -477,13 +812,15 @@ if(!class_exists('postindexeradmin')) {
 			<div class="wrap nosubsub">
 
 				<h3 class="nav-tab-wrapper">
-					<a href="settings.php?page=postindexer&amp;tab=globaloptions" class="nav-tab <?php if (!isset($_GET['tab']) || $_GET['tab'] == 'globaloptions') echo 'nav-tab-active'; ?>"><?php _e('Global Settings','postindexer'); ?></a>
-					<a href="settings.php?page=postindexer&amp;tab=rebuildindex" class="nav-tab <?php if (isset($_GET['tab']) && $_GET['tab'] == 'rebuildindex') echo 'nav-tab-active'; ?>"><?php _e('Rebuild Index','postindexer'); ?></a>
 					<?php if( has_action('postindexer_statistics') ) {
 						?>
-						<a href="settings.php?page=postindexer&amp;tab=statistics" class="nav-tab <?php if (isset($_GET['tab']) && $_GET['tab'] == 'statistics') echo 'nav-tab-active'; ?>"><?php _e('Statistics','postindexer'); ?></a>
+						<a href="settings.php?page=postindexer&amp;tab=statistics" class="nav-tab <?php if (!isset($_GET['tab']) || $_GET['tab'] == 'statistics') echo 'nav-tab-active'; ?>"><?php _e('Statistics','postindexer'); ?></a>
 						<?php
 					}
+					?>
+					<a href="settings.php?page=postindexer&amp;tab=globaloptions" class="nav-tab <?php if (isset($_GET['tab']) && $_GET['tab'] == 'globaloptions') echo 'nav-tab-active'; ?>"><?php _e('Global Settings','postindexer'); ?></a>
+					<a href="settings.php?page=postindexer&amp;tab=rebuildindex" class="nav-tab <?php if (isset($_GET['tab']) && $_GET['tab'] == 'rebuildindex') echo 'nav-tab-active'; ?>"><?php _e('Rebuild Index','postindexer'); ?></a>
+					<?php
 					if(defined('PI_CRON_DEBUG') && PI_CRON_DEBUG == true) {
 						?>
 						<a href="settings.php?page=postindexer&amp;tab=log" class="nav-tab <?php if (isset($_GET['tab']) && $_GET['tab'] == 'log') echo 'nav-tab-active'; ?>"><?php _e('Cron Log','postindexer'); ?></a>
@@ -534,14 +871,10 @@ if(!class_exists('postindexeradmin')) {
 											<?php
 											break;
 
-					case 'statistics':		do_action('postindexer_statistics');
-											break;
-
-					case 'log':				$this->handle_log_page();
+					case 'log':				if(defined('PI_CRON_DEBUG') && PI_CRON_DEBUG == true) { $this->handle_log_page(); }
 											break;
 
 					case 'globaloptions':
-					default:
 											?>
 											<div id="icon-edit" class="icon32 icon32-posts-post"><br></div>
 											<h2><?php _e('Post Indexer Global Settings','postindexer'); ?></h2>
@@ -628,6 +961,11 @@ if(!class_exists('postindexeradmin')) {
 											<?php
 											break;
 
+					case 'statistics':
+					default:
+											do_action('postindexer_statistics');
+											break;
+
 
 				}
 
@@ -642,8 +980,16 @@ if(!class_exists('postindexeradmin')) {
 
 			if( $this->model->is_blog_indexable( $this->db->blogid ) ) {
 
-				$post = $this->model->get_post_for_indexing( $post_id );
+				// For this we will grab the post regardless if it is one we want to index so we can remove non-indexable ones
+				$post = $this->model->get_post_for_indexing( $post_id, false, false );
 				if( !empty($post) ) {
+					// Check if we are a revision, and if so then grab the proper post
+					if( $post['post_type'] == 'revision' && ((int) $post['post_parent'] > 0) ) {
+						// Grab the parent_id and then grab that post
+						$post_id = (int) $post['post_parent'];
+						$post = $this->model->get_post_for_indexing( $post_id, false, false );
+					}
+
 					// Check if the post should be indexed or not
 					if($this->model->is_post_indexable( $post ) ) {
 

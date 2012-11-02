@@ -21,3 +21,78 @@ tr.logentry {
 	border: 1px solid #ccc;
 }
 
+div.postbox {
+	margin-top: 5px;
+	margin-bottom: 15px;
+	background: #fff;
+}
+
+div.postbox div.inside {
+	
+}
+
+div.inside div.table table {
+	margin-top: 5px;
+	width: 100%;
+	margin-bottom: 5px;
+}
+
+div.inside div.table table tbody tr td.heading {
+	text-align: right;
+	width: 20%;
+	line-height: 1.4em;
+	padding: 5px 5px 5px 10px;
+}
+
+tr.spacer, td.spacer {
+	background-color: #ececec;
+
+}
+
+div.inside div.table table tbody tr td.spacer span {
+	text-shadow: 0 1px 0 #FFFFFF;
+	font-size: 12px;
+	color: #000;line-height: 1.4em;
+	margin-left: 10px;
+	font-style: normal;
+	font-weight: bold;
+}
+
+ div.table table tbody tr td p {
+	padding-left: 10px;
+	padding-top: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+div.inside div.table table tbody tr td {
+	line-height: 1.4em;
+	padding-right: 5px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	vertical-align: top;
+}
+
+div.inside div.table table tbody tr td span {
+	font-size: 11px;
+	font-style: italic;
+}
+
+div.postbox h3.hndle {
+	cursor: auto;
+}
+
+div.postbox h3.hndle span {
+	padding: 6px 0;
+}
+
+div.postbox div.inside p {
+	padding: 5px 0;
+	margin: 5px 0;
+}
+
+div.postbox. div.inside div.line {
+	display: block;
+	border-top: 1px solid #dfdfdf;
+	width: 100%;
+}

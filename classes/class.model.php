@@ -370,14 +370,19 @@ if(!class_exists('postindexermodel')) {
 			return $posts;
 		}
 
-		function get_post_for_indexing( $post_id, $blog_id = false ) {
+		function get_post_for_indexing( $post_id, $blog_id = false, $restrict = true ) {
 
 			if($blog_id !== false) $this->switch_to_blog( $blog_id );
 
-			$posttypes = get_option( 'postindexer_posttypes', $this->global_post_types );
-			// Get the first five posts to work through that are published, in the selected post types and not password protected
-			$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d AND post_status IN ('publish','inherit') AND post_type IN ('" . implode("','", $posttypes) . "') AND post_password = ''", $post_id );
-			$post = $this->db->get_row( $sql, ARRAY_A );
+			if( $restrict === true ) {
+				$posttypes = get_option( 'postindexer_posttypes', $this->global_post_types );
+				// Get the post to work with that is published, in the selected post types and not password protected
+				$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d AND post_status IN ('publish','inherit') AND post_type IN ('" . implode("','", $posttypes) . "') AND post_password = ''", $post_id );
+				$post = $this->db->get_row( $sql, ARRAY_A );
+			} else {
+				$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d", $post_id );
+				$post = $this->db->get_row( $sql, ARRAY_A );
+			}
 
 			if($blog_id !== false) $this->restore_current_blog();
 
@@ -691,6 +696,33 @@ if(!class_exists('postindexermodel')) {
 			$sql = $this->db->prepare( "SELECT * FROM {$this->network_log} ORDER BY id DESC LIMIT %d", $show );
 
 			return $this->db->get_results( $sql );
+		}
+
+		function get_summary_post_types() {
+
+			$sql = $this->db->prepare( "SELECT post_type, count(*) AS post_type_count FROM {$this->network_posts} GROUP BY post_type ORDER BY post_type_count DESC" );
+
+			return $this->db->get_results( $sql );
+
+		}
+
+		function get_summary_blog_totals() {
+
+			$sql = $this->db->prepare( "SELECT BLOG_ID, count(*) AS blog_count FROM {$this->network_posts} GROUP BY BLOG_ID ORDER BY blog_count DESC LIMIT 15" );
+
+			return $this->db->get_results( $sql );
+
+		}
+
+		function get_summary_blog_post_type_totals( $ids = array() ) {
+
+			$ids = $this->db->get_col( $this->db->prepare( "SELECT BLOG_ID, count(*) AS blog_count FROM {$this->network_posts} GROUP BY BLOG_ID ORDER BY blog_count DESC LIMIT 15" ) );
+			$ids = "'" . implode("','", $ids) . "'";
+
+			$sql = $this->db->prepare( "SELECT BLOG_ID, post_type, count(*) AS blog_type_count FROM {$this->network_posts} WHERE BLOG_ID IN (" . $ids . ") GROUP BY BLOG_ID, post_type ORDER BY blog_id, post_type DESC LIMIT 15" );
+
+			return $this->db->get_results( $sql );
+
 		}
 
 
