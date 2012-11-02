@@ -624,7 +624,7 @@ if(!class_exists('postindexeradmin')) {
 			<div id="blog-stats" class="postbox ">
 				<h3 class="hndle"><span><?php _e('Most Indexed Blogs','postindexer'); ?></span></h3>
 				<div class="inside">
-					<div id='blog-stats-chart' style='min-height: 300px;'>
+					<div id='blog-stats-chart' style='min-height: 400px;'>
 					</div>
 				</div>
 			</div>
