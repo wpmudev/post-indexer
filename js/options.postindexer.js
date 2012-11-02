@@ -1,3 +1,16 @@
+function pishowTooltip(x, y, contents) {
+   jQuery('<div id="pitooltip">' + contents + '</div>').css( {
+		position: 'absolute',
+        display: 'none',
+        top: y,
+        left: x,
+        border: '2px solid #333',
+        padding: '10px',
+        'background-color': '#EEE',
+        opacity: 0.80
+   }).appendTo("body").fadeIn(200);
+}
+
 function piSetWidth() {
 	var width = jQuery('#post-type-stats-chart').parents('div.inside').width();
 	jQuery('#post-type-stats-chart').width((width - 20) + 'px').height( Math.round(width / 2) + 'px');
@@ -49,6 +62,25 @@ function piBuildBlogChart(chart) {
 	  };
 
 	piblogplot = jQuery.plot(jQuery('#blog-stats-chart'), blogcountdata, options);
+
+	var previousPoint = null;
+	jQuery("#blog-stats-chart").bind("plothover", function (event, pos, item) {
+	    if (item) {
+	    	if (previousPoint != item.datapoint) {
+	        	previousPoint = item.datapoint;
+
+	            jQuery("#pitooltip").remove();
+	            var x = item.datapoint[0].toFixed(0),
+	            	y = item.datapoint[1].toFixed(0) - item.datapoint[2].toFixed(0);
+
+	                pishowTooltip(item.pageX, item.pageY,
+	                            y + ' ' + item.series.label);
+	        }
+		} else {
+	    	jQuery("#pitooltip").remove();
+			previousPoint = null;
+		}
+	});
 
 }
 
