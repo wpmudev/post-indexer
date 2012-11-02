@@ -372,8 +372,9 @@ if(!class_exists('postindexeradmin')) {
 		function add_header_postindexer_page() {
 
 			// Enqueue the graphing library
-			wp_enqueue_script('flot_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.min.js', array('jquery'));
-			wp_enqueue_script('flot_pie_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.pie.min.js', array('jquery', 'flot_js'));
+			wp_enqueue_script('flot_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.js', array('jquery'));
+			wp_enqueue_script('flot_pie_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.pie.js', array('jquery', 'flot_js'));
+			wp_enqueue_script('flot_stack_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.stack.js', array('jquery', 'flot_js'));
 			// Add in header for IE users
 			add_action ('admin_head', array(&$this, 'dashboard_iehead'));
 			// Add in the chart data we need for the
