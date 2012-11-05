@@ -725,6 +725,14 @@ if(!class_exists('postindexermodel')) {
 
 		}
 
+		function get_summary_recently_indexed() {
+
+			$sql = $this->db->prepare( "SELECT * FROM {$this->network_posts} ORDER BY post_modified_gmt DESC LIMIT 15" );
+
+			return $this->db->get_results( $sql );
+
+		}
+
 
 	}
 

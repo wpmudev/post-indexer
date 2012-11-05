@@ -35,6 +35,7 @@ if(!class_exists('postindexeradmin')) {
 			add_filter( 'wpmu_blogs_columns', array(&$this, 'add_sites_column_heading'), 99 );
 			add_action( 'manage_sites_custom_column', array(&$this, 'add_sites_column_data'), 99, 2 );
 			add_action( 'wp_ajax_editsitepostindexer', array(&$this, 'edit_site_postindexer') );
+			add_action( 'wp_ajax_summarysitepostindexer', array(&$this, 'summary_site_postindexer') );
 			add_action( 'admin_head-sites.php', array(&$this, 'add_header_sites_page'));
 			add_action( 'wpmuadminedit' , array(&$this, 'process_sites_page'));
 			// Sites update settings
@@ -77,7 +78,8 @@ if(!class_exists('postindexeradmin')) {
 			wp_register_script('pi-sites-post-indexer', WP_PLUGIN_URL . '/post-indexer/js/sites.postindexer.js', array('jquery', 'thickbox'));
 			wp_enqueue_script('pi-sites-post-indexer');
 
-			wp_localize_script('pi-sites-post-indexer', 'postindexer', array( 'siteedittitle'	=>	__('Post Indexer Settings','postindexer')
+			wp_localize_script('pi-sites-post-indexer', 'postindexer', array( 	'siteedittitle'		=>	__('Post Indexer Settings','postindexer'),
+																				'sitesummarytitle'	=> __('Site Index Summary', 'postindexer')
 																												));
 			wp_enqueue_style('thickbox');
 
@@ -224,6 +226,9 @@ if(!class_exists('postindexeradmin')) {
 						<span class="rebuild">
 							<a class='postindexersiterebuildlink' href='<?php echo wp_nonce_url( network_admin_url("sites.php?action=rebuildsitepostindexer&amp;blog_id=" . $blog_id . ""), 'rebuild_site_postindexer_' . $blog_id); ?>'><?php _e('Rebuild','postindexer'); ?></a>
 						</span>
+						<span class="summary">
+							<a class='postindexersitesummarylink' href='<?php echo wp_nonce_url( admin_url("admin-ajax.php?action=summarysitepostindexer&amp;blog_id=" . $blog_id . ""), 'summary_site_postindexer_' . $blog_id); ?>'><?php _e('Summary','postindexer'); ?></a>
+						</span>
 					</div>
 					<?php
 				} else {
@@ -241,6 +246,40 @@ if(!class_exists('postindexeradmin')) {
 				}
 			}
 
+		}
+
+		function summary_site_postindexer() {
+
+			_wp_admin_html_begin();
+			?>
+			<title><?php _e('Site Index Summary','postindexer'); ?></title>
+			<?php
+
+			wp_enqueue_style( 'colors' );
+			//wp_enqueue_style( 'media' );
+			//wp_enqueue_style( 'ie' );
+			wp_enqueue_script( 'jquery' );
+
+			do_action('admin_print_styles');
+			do_action('admin_print_scripts');
+			do_action('admin_head');
+
+			?>
+			</head>
+			<body<?php if ( isset($GLOBALS['body_id']) ) echo ' id="' . $GLOBALS['body_id'] . '"'; ?> class="no-js">
+			<script type="text/javascript">
+				document.body.className = document.body.className.replace('no-js', 'js');
+			</script>
+			<?php
+				$this->edit_site_content();
+
+				do_action('admin_print_footer_scripts');
+			?>
+			<script type="text/javascript">if(typeof wpOnload=='function')wpOnload();</script>
+			</body>
+			</html>
+			<?php
+			exit;
 		}
 
 		// Code from this function based on code from AJAX Media Upload function
@@ -667,7 +706,9 @@ if(!class_exists('postindexeradmin')) {
 			<div id="last-indexed-stats" class="postbox ">
 				<h3 class="hndle"><span><?php _e('Recently Indexed Posts','postindexer'); ?></span></h3>
 				<div class="inside">
-
+					<?php
+						$recent = $this->model->get_summary_recently_indexed();
+					?>
 
 
 				</div>
@@ -681,15 +722,15 @@ if(!class_exists('postindexeradmin')) {
 			add_action( 'postindexer_dashboard_left', array(&$this, 'dashboard_news') );
 			add_action( 'postindexer_dashboard_left', array(&$this, 'dashboard_blog_stats') );
 
-			add_action( 'postindexer_dashboard_right', array(&$this, 'dashboard_post_type_stats') );
-			add_action( 'postindexer_dashboard_right', array(&$this, 'dashboard_last_indexed_stats') );
-
 			if($this->model->blogs_for_rebuilding()) {
 				$rebuild_queue = true;
 				add_action( 'postindexer_dashboard_right', array(&$this, 'dashboard_rebuild_queue_stats') );
 			} else {
 				$rebuild_queue = false;
 			}
+
+			add_action( 'postindexer_dashboard_right', array(&$this, 'dashboard_post_type_stats') );
+			add_action( 'postindexer_dashboard_right', array(&$this, 'dashboard_last_indexed_stats') );
 
 			?>
 			<div id="icon-edit" class="icon32 icon32-posts-post"><br></div>
