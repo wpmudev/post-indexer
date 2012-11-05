@@ -225,9 +225,9 @@ if(!class_exists('postindexeradmin')) {
 						</span> |
 						<span class="rebuild">
 							<a class='postindexersiterebuildlink' href='<?php echo wp_nonce_url( network_admin_url("sites.php?action=rebuildsitepostindexer&amp;blog_id=" . $blog_id . ""), 'rebuild_site_postindexer_' . $blog_id); ?>'><?php _e('Rebuild','postindexer'); ?></a>
-						</span>
+						</span> |
 						<span class="summary">
-							<a class='postindexersitesummarylink' href='<?php echo wp_nonce_url( admin_url("admin-ajax.php?action=summarysitepostindexer&amp;blog_id=" . $blog_id . ""), 'summary_site_postindexer_' . $blog_id); ?>'><?php _e('Summary','postindexer'); ?></a>
+							<a class='postindexersitesummarylink' href='<?php echo wp_nonce_url( admin_url("admin-ajax.php?action=summarysitepostindexer&amp;blog_id=" . $blog_id . ""), 'summary_site_postindexer_' . $blog_id); ?>'><?php _e('Statistics','postindexer'); ?></a>
 						</span>
 					</div>
 					<?php
