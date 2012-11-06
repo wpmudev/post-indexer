@@ -250,15 +250,29 @@ if(!class_exists('postindexeradmin')) {
 
 		function summary_site_postindexer() {
 
+			// Enqueue the JS we need
+
+			// Enqueue the graphing library
+			wp_enqueue_script('flot_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.js', array('jquery'));
+			wp_enqueue_script('flot_pie_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.pie.js', array('jquery', 'flot_js'));
+			wp_enqueue_script('flot_stack_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.stack.js', array('jquery', 'flot_js'));
+
+			wp_enqueue_style( 'colors' );
+			wp_enqueue_script( 'jquery' );
+
+			// Add in header for IE users
+			add_action ('admin_head', array(&$this, 'dashboard_iehead'));
+			// Add in the chart data we need for the
+			add_action ('admin_head', array(&$this, 'dashboard_singlesitechartdata'));
+
+			//wp_enqueue_style('postindexernetworksettings', WP_PLUGIN_URL . '/post-indexer/css/options.postindexer.css');
+
+			wp_enqueue_script('postindexerscript', WP_PLUGIN_URL . '/post-indexer/js/sitestats.postindexer.js', array('jquery'));
+
 			_wp_admin_html_begin();
 			?>
 			<title><?php _e('Site Index Summary','postindexer'); ?></title>
 			<?php
-
-			wp_enqueue_style( 'colors' );
-			//wp_enqueue_style( 'media' );
-			//wp_enqueue_style( 'ie' );
-			wp_enqueue_script( 'jquery' );
 
 			do_action('admin_print_styles');
 			do_action('admin_print_scripts');
@@ -270,9 +284,9 @@ if(!class_exists('postindexeradmin')) {
 			<script type="text/javascript">
 				document.body.className = document.body.className.replace('no-js', 'js');
 			</script>
+			<div id='singlesitestats' style='height: 380px; width: 600px; margin-top: 10px; margin-bottom: 10px;'>
+			</div>
 			<?php
-				$this->edit_site_content();
-
 				do_action('admin_print_footer_scripts');
 			?>
 			<script type="text/javascript">if(typeof wpOnload=='function')wpOnload();</script>
@@ -511,6 +525,55 @@ if(!class_exists('postindexeradmin')) {
 			}
 
 			return "[ " . implode(", ", $data) . " ]";
+
+		}
+
+		function dashboard_singlesitechartdata() {
+
+			$blog_counts = $this->model->get_summary_single_site_blog_post_type_totals( (int) $_GET['blog_id'] );
+
+			// Sort out the post types for the blog
+			if(!empty($blog_counts)) {
+				$blog_counts_results = array();
+				$blog_counts_data = array();
+				$blog_count_max = 0;
+
+				$blog_type_ticks = array();
+
+				$n = 1;
+				foreach($blog_counts as $bc) {
+					if(!array_key_exists( $bc->BLOG_ID, $blog_type_ticks)) {
+						$blog_type_ticks[$bc->BLOG_ID] = array( (int) $n++, get_blog_option( $bc->BLOG_ID, 'blogname') );
+					}
+					if($bc->blog_type_count > $blog_count_max) $blog_count_max = $bc->blog_type_count;
+				}
+
+				foreach($blog_counts as $bc) {
+					$val = $blog_type_ticks[$bc->BLOG_ID][0];
+					$blog_counts_results[$bc->post_type][(int) $val] = (int) $bc->blog_type_count;
+				}
+
+				foreach($blog_counts_results as $key => $value) {
+					$blog_counts_data[$key] = array( "label" => $key, "data" => $value );
+				}
+
+				$blog_counts_data = array_values($blog_counts_data);
+
+			}
+
+
+			echo "\n" . '<script type="text/javascript">';
+			echo "\n" . '/* <![CDATA[ */ ' . "\n";
+
+			echo "var blogcountdata = [\n";
+				foreach($blog_counts_data as $bcd) {
+					echo "{label: '" . $bcd["label"] . "', data: " . $this->get_data( $bcd['data'] ) . "},\n";
+				}
+			echo "];\n";
+			echo "var blogcountinfo = " . $this->get_json( array( "ticks" => array_values($blog_type_ticks), "maxcount" => $blog_count_max  ) ) . ";\n";
+
+			echo "\n" . '/* ]]> */ ';
+			echo '</script>';
 
 		}
 
@@ -755,7 +818,7 @@ if(!class_exists('postindexeradmin')) {
 							<?php
 							$class = '';
 							foreach( $recent as $r ) {
-								switch_to_blog( $r->BLOG_D );
+								switch_to_blog( $r->BLOG_ID );
 								?>
 								<tr class='<?php echo $class; ?>'>
 									<td style='width: 75%;' valign=top><a href='<?php echo get_permalink( $r->ID ); ?>'>

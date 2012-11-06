@@ -7,40 +7,12 @@ function pisiteshowTooltip(x, y, contents) {
         border: '2px solid #333',
         padding: '10px',
         'background-color': '#EEE',
-        opacity: 0.80
+        opacity: 0.80,
+		'z-index': 9999
    }).appendTo("body").fadeIn(200);
 }
 
-function piSetWidth() {
-	var width = jQuery('#blog-stats-chart').parents('div.inside').width();
-	jQuery('#blog-stats-chart').width((width - 20) + 'px');
-}
-
-function piBuildPostChart(chart) {
-
-		var pie_options = {
-          series: {
-            pie: {
-              show: true,
-              radius: 1,
-              label: {
-                  show: true,
-                  radius: 3/4,
-                  formatter: function(label, series){
-                      return '<div style="font-size:8pt;font-weight:bold;text-align:center;padding:2px;color:white;">'+Math.round(series.percent)+'%</div>';
-                  },
-                  background: { opacity: 0.5 }
-              }
-            }
-          },
-          legend: { show: true, backgroundOpacity: 0.5 }
-        };
-
-	piposttypeplot = jQuery.plot(jQuery('#post-type-stats-chart'), chart, pie_options);
-
-}
-
-function piBuildBlogChart(chart) {
+function piBuildSiteStatsChart() {
 
 	var options = {
 		series: {
@@ -58,10 +30,10 @@ function piBuildBlogChart(chart) {
 
 	  };
 
-	piblogplot = jQuery.plot(jQuery('#blog-stats-chart'), blogcountdata, options);
+	piblogplot = jQuery.plot(jQuery('#singlesitestats'), blogcountdata, options);
 
 	var previousPoint = null;
-	jQuery("#blog-stats-chart").bind("plothover", function (event, pos, item) {
+	jQuery("#singlesitestats").bind("plothover", function (event, pos, item) {
 	    if (item) {
 	    	if (previousPoint != item.datapoint) {
 	        	previousPoint = item.datapoint;
@@ -81,9 +53,9 @@ function piBuildBlogChart(chart) {
 
 }
 
-function piPlotCharts() {
+function piPlotSiteChart() {
 
-	piBuildBlogChart( blogcountdata.chart );
+	piBuildSiteStatsChart();
 
 }
 
@@ -92,12 +64,10 @@ function piSiteStatisticsReady() {
 	chart = false;
 	ticks = false;
 
-	piSetWidth();
-	piPlotCharts();
+	piPlotSiteChart();
 
 	jQuery(window).resize( function() {
-		piSetWidth();
-		piPlotCharts();
+		piPlotSiteChart();
 	});
 
 

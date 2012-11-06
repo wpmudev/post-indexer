@@ -725,6 +725,14 @@ if(!class_exists('postindexermodel')) {
 
 		}
 
+		function get_summary_single_site_blog_post_type_totals( $id ) {
+
+			$sql = $this->db->prepare( "SELECT BLOG_ID, post_type, count(*) AS blog_type_count FROM {$this->network_posts} WHERE BLOG_ID = %d GROUP BY BLOG_ID, post_type ORDER BY blog_id, post_type DESC LIMIT 15", $id );
+
+			return $this->db->get_results( $sql );
+
+		}
+
 		function get_summary_recently_indexed() {
 
 			$sql = $this->db->prepare( "SELECT * FROM {$this->network_posts} ORDER BY post_modified_gmt DESC LIMIT 15" );
