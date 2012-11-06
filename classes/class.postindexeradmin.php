@@ -647,7 +647,7 @@ if(!class_exists('postindexeradmin')) {
 
 			?>
 			<div id="dashboard_right_now" class="postbox ">
-				<h3 class="hndle"><span><?php _e('Post Indexer Summary','postindexer'); ?></span></h3>
+				<h3 class="hndle"><span><?php _e('Post Index Summary','postindexer'); ?></span></h3>
 				<div class="inside">
 
 					<div class="table table_content">
@@ -675,7 +675,7 @@ if(!class_exists('postindexeradmin')) {
 					</div>
 
 					<div class="table table_discussion">
-						<p class="sub"><?php _e('Most Indexed Blogs', 'postindexer'); ?></p>
+						<p class="sub"><?php _e('Most Indexed Sites', 'postindexer'); ?></p>
 						<?php
 							// Get the counts for the blogs
 							$blog_counts = $this->model->get_summary_blog_totals();
@@ -724,7 +724,7 @@ if(!class_exists('postindexeradmin')) {
 
 			?>
 			<div id="blog-stats" class="postbox ">
-				<h3 class="hndle"><span><?php _e('Most Indexed Blogs','postindexer'); ?></span></h3>
+				<h3 class="hndle"><span><?php _e('Most Indexed Sites','postindexer'); ?></span></h3>
 				<div class="inside">
 					<div id='blog-stats-chart' style='min-height: 400px;'>
 					</div>
@@ -777,7 +777,7 @@ if(!class_exists('postindexeradmin')) {
 								</tr>
 								<tr>
 									<td class="first b b-posts"><?php echo $this->model->get_summary_sites_in_queue_finish_next_pass(); ?></td>
-									<td class="t posts"><?php echo __('Sites which will complete processing on next pass', 'postindexer'); ?></td>
+									<td class="t posts"><?php echo __('Sites will complete processing on next pass', 'postindexer'); ?></td>
 								</tr>
 							</tbody>
 						</table>
