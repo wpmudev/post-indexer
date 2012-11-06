@@ -96,3 +96,55 @@ div.postbox. div.inside div.line {
 	border-top: 1px solid #dfdfdf;
 	width: 100%;
 }
+
+#last-indexed-stats table.widefat td {
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+#last-indexed-stats table.widefat tr.alt td {
+	padding-top: 5px;
+	padding-bottom: 5px;
+	background-color: #ddedfa;
+}
+
+#rebuild-queue-stats div.inside {
+	font-size: 12px;
+    padding-top: 20px;
+	margin: 10px 0;
+    position: relative;
+}
+
+#rebuild-queue-stats div.inside div.table.table_content {
+	border-top: 1px solid #ECECEC;
+    float: left;
+    width: 95%;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+#rebuild-queue-stats div.inside div.table.table_content p.sub {
+	color: #8F8F8F;
+    font-size: 14px;
+    left: 2px;
+    position: absolute;
+    top: -23px;
+    margin: 0;
+	padding: 0 0 15px;
+}
+
+#rebuild-queue-stats div.inside td.t.posts {
+	color: #777777;
+    font-size: 12px;
+    padding-right: 12px;
+    padding-top: 6px;
+}
+
+#rebuild-queue-stats div.inside td.first.b.b-posts {
+	font-size: 14px;
+    padding-right: 6px;
+    text-align: right;
+    width: 1%;
+}
+

@@ -692,6 +692,34 @@ if(!class_exists('postindexeradmin')) {
 				<h3 class="hndle"><span><?php _e('Rebuild Queue Status','postindexer'); ?></span></h3>
 				<div class="inside">
 
+					<div class="table table_content">
+						<p class="sub"><?php _e('Current Queue Summary', 'postindexer'); ?></p>
+						<?php
+							// Get the queue counts
+
+						?>
+						<table>
+							<tbody>
+								<tr>
+									<td class="first b b-posts"><?php echo $this->model->get_summary_sites_in_queue(); ?></td>
+									<td class="t posts"><?php echo __('Sites in queue', 'postindexer'); ?></td>
+								</tr>
+								<tr>
+									<td class="first b b-posts"><?php echo $this->model->get_summary_sites_in_queue_processing(); ?></td>
+									<td class="t posts"><?php echo __('Sites currently being processed', 'postindexer'); ?></td>
+								</tr>
+								<tr>
+									<td class="first b b-posts"><?php echo $this->model->get_summary_sites_in_queue_not_processing(); ?></td>
+									<td class="t posts"><?php echo __('Sites awaiting processing', 'postindexer'); ?></td>
+								</tr>
+								<tr>
+									<td class="first b b-posts"><?php echo $this->model->get_summary_sites_in_queue_finish_next_pass(); ?></td>
+									<td class="t posts"><?php echo __('Sites which will complete processing on next pass', 'postindexer'); ?></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<br class="clear">
 
 
 				</div>
@@ -706,11 +734,57 @@ if(!class_exists('postindexeradmin')) {
 			<div id="last-indexed-stats" class="postbox ">
 				<h3 class="hndle"><span><?php _e('Recently Indexed Posts','postindexer'); ?></span></h3>
 				<div class="inside">
+					<table class='widefat'>
+						<thead>
+							<tr>
+								<th scope="col"><?php _e('Post Title','postindexer'); ?></th>
+								<th scope="col"><?php _e('Site','postindexer'); ?></th>
+							</tr>
+						</thead>
+						<tfoot>
+							<tr>
+								<th scope="col"><?php _e('Post Title','postindexer'); ?></th>
+								<th scope="col"><?php _e('Site','postindexer'); ?></th>
+							</tr>
+						</tfoot>
+						<tbody>
 					<?php
 						$recent = $this->model->get_summary_recently_indexed();
+						if(!empty($recent)) {
+							?>
+							<?php
+							$class = '';
+							foreach( $recent as $r ) {
+								switch_to_blog( $r->BLOG_D );
+								?>
+								<tr class='<?php echo $class; ?>'>
+									<td style='width: 75%;' valign=top><a href='<?php echo get_permalink( $r->ID ); ?>'>
+										<?php
+											echo get_the_title( $r->ID );
+										?>
+										</a>
+									</td>
+									<td style='width: 25%;' valign=top><a href='<?php echo get_option( 'home' ); ?>'>
+										<?php
+											echo get_option( 'blogname' );
+										?>
+										</a>
+									</td>
+								</tr>
+								<?php
+								restore_current_blog();
+								if($class == '') {
+									$class = 'alt';
+								} else {
+									$class = '';
+								}
+							}
+							?>
+							<?php
+						}
 					?>
-
-
+						</tbody>
+					</table>
 				</div>
 			</div>
 			<?php

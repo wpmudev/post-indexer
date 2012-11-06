@@ -733,6 +733,37 @@ if(!class_exists('postindexermodel')) {
 
 		}
 
+		function get_summary_sites_in_queue() {
+
+			$sql = $this->db->prepare( "SELECT count(*) AS inqueue FROM {$this->network_rebuildqueue}" );
+
+			return $this->db->get_var( $sql );
+
+		}
+
+		function get_summary_sites_in_queue_processing() {
+
+			$sql = $this->db->prepare( "SELECT count(*) AS inqueue FROM {$this->network_rebuildqueue} WHERE rebuild_progress > 0" );
+
+			return $this->db->get_var( $sql );
+
+		}
+
+		function get_summary_sites_in_queue_not_processing() {
+
+			$sql = $this->db->prepare( "SELECT count(*) AS inqueue FROM {$this->network_rebuildqueue} WHERE rebuild_progress = 0" );
+
+			return $this->db->get_var( $sql );
+
+		}
+
+		function get_summary_sites_in_queue_finish_next_pass() {
+
+			$sql = $this->db->prepare( "SELECT count(*) AS inqueue FROM {$this->network_rebuildqueue} WHERE rebuild_progress > 0 AND rebuild_progress <= %d", PI_CRON_POST_PROCESS_SECONDPASS );
+
+			return $this->db->get_var( $sql );
+
+		}
 
 	}
 
