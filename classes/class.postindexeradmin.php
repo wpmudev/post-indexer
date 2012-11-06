@@ -446,6 +446,8 @@ if(!class_exists('postindexeradmin')) {
 
 		function process_postindexer_page() {
 
+			if(!isset($_POST['action'])) return;
+
 			switch($_POST['action']) {
 
 				case 'postindexerrebuildallsites':	check_admin_referer('postindexer_rebuild_all_sites');
@@ -1009,143 +1011,147 @@ if(!class_exists('postindexeradmin')) {
 				</h3>
 
 			<?php
-				switch($_GET['tab']) {
+				if(isset($_GET['tab'])) {
+					switch($_GET['tab']) {
 
 
-					case 'rebuildindex':	?>
-											<div id="icon-edit" class="icon32 icon32-posts-post"><br></div>
-											<h2><?php _e('Rebuild Network Post Index','postindexer'); ?></h2>
+						case 'rebuildindex':	?>
+												<div id="icon-edit" class="icon32 icon32-posts-post"><br></div>
+												<h2><?php _e('Rebuild Network Post Index','postindexer'); ?></h2>
 
-											<?php
-											if($this->model->blogs_for_rebuilding()) {
-												// Show a rebuilding message and timer
-												?>
-												<div id='rebuildingmessage'>
-												<?php _e('You currently have items in your indexing queue.','postindexer'); ?>
-												</div>
 												<?php
-											}
-											?>
-
-											<?php
-											if ( isset($_GET['msg']) ) {
-												echo '<div id="message" class="updated fade"><p>' . $messages[(int) $_GET['msg']] . '</p></div>';
-												$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
-											}
-											?>
-											<form action='' method='post'>
-
-												<input type='hidden' name='action' value='postindexerrebuildallsites' />
-												<?php
-													wp_nonce_field('postindexer_rebuild_all_sites');
+												if($this->model->blogs_for_rebuilding()) {
+													// Show a rebuilding message and timer
+													?>
+													<div id='rebuildingmessage'>
+													<?php _e('You currently have items in your indexing queue.','postindexer'); ?>
+													</div>
+													<?php
+												}
 												?>
 
-												<p class='description'><?php _e('You can rebuild the Post Index by clicking on the <strong>Rebuild Index</strong> button below.','postindexer'); ?></p>
-												<p class='description'><?php _e("Note: This may take a considerable amount of time and could impact the performance of your server.",'postindexer'); ?></p>
-
-												<p class="submit">
-													<input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Rebuild Index','postindexer'); ?>" />
-												</p>
-											</form>
-											<?php
-											break;
-
-					case 'log':				if(defined('PI_CRON_DEBUG') && PI_CRON_DEBUG == true) { $this->handle_log_page(); }
-											break;
-
-					case 'globaloptions':
-											?>
-											<div id="icon-edit" class="icon32 icon32-posts-post"><br></div>
-											<h2><?php _e('Post Indexer Global Settings','postindexer'); ?></h2>
-
-											<?php
-											if($this->model->blogs_for_rebuilding()) {
-												// Show a rebuilding message and timer
+												<?php
+												if ( isset($_GET['msg']) ) {
+													echo '<div id="message" class="updated fade"><p>' . $messages[(int) $_GET['msg']] . '</p></div>';
+													$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+												}
 												?>
-												<div id='rebuildingmessage'>
-												<?php _e('You currently have items in your indexing queue.','postindexer'); ?>
-												</div>
+												<form action='' method='post'>
+
+													<input type='hidden' name='action' value='postindexerrebuildallsites' />
+													<?php
+														wp_nonce_field('postindexer_rebuild_all_sites');
+													?>
+
+													<p class='description'><?php _e('You can rebuild the Post Index by clicking on the <strong>Rebuild Index</strong> button below.','postindexer'); ?></p>
+													<p class='description'><?php _e("Note: This may take a considerable amount of time and could impact the performance of your server.",'postindexer'); ?></p>
+
+													<p class="submit">
+														<input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Rebuild Index','postindexer'); ?>" />
+													</p>
+												</form>
 												<?php
-											}
-											?>
+												break;
 
-											<?php
-											if ( isset($_GET['msg']) ) {
-												echo '<div id="message" class="updated fade"><p>' . $messages[(int) $_GET['msg']] . '</p></div>';
-												$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
-											}
-											?>
+						case 'log':				if(defined('PI_CRON_DEBUG') && PI_CRON_DEBUG == true) { $this->handle_log_page(); }
+												break;
 
-											<form action='' method='post'>
-
-												<input type='hidden' name='action' value='postindexerupdateglobaloptions' />
-												<?php
-													wp_nonce_field('postindexer_update_global_options');
+						case 'globaloptions':
 												?>
+												<div id="icon-edit" class="icon32 icon32-posts-post"><br></div>
+												<h2><?php _e('Post Indexer Global Settings','postindexer'); ?></h2>
 
-												<p class='description'><?php
-													_e('The settings below allow you to set the defaults for all the sites in your network and processing that will take place across your entire index. ','postindexer');
-													echo sprintf(__("You can override some of these settings on a site by site basis via the <a href=%s>Sites admin page</a>.",'postindexer'), network_admin_url('sites.php') ); ?>
-												</p>
-
-												<table class="form-table">
-													<tbody>
-														<tr valign="top">
-															<th scope="row"><label for="post_types"><?php _e('Default Post Types','postindexer'); ?></label></th>
-															<td>
-																<textarea id="post_types" name="post_types" cols="80" rows="5"><?php echo implode("\n", $this->global_post_types); ?></textarea>
-																<br/>
-																<?php _e('These are the default post types that will be indexed by the plugin. Place each post type on a seperate line.','postindexer'); ?>
-															</td>
-														</tr>
-
-														<tr valign="top">
-															<th scope="row"><label for="agedperiod"><?php _e('Remove indexed posts older than','postindexer'); ?></label></th>
-															<td>
-																<?php
-																	$agedposts = get_site_option( 'postindexer_agedposts', array( 'agedunit' => 1, 'agedperiod' => 'year' ) );
-																?>
-																<select name='agedunit'>
-																<?php
-																	for($n = 1; $n <= 365; $n++) {
-																		?>
-																		<option value='<?php echo $n; ?>' <?php selected($n, $agedposts['agedunit']); ?>><?php echo $n; ?></option>
-																		<?php
-																	}
-																?>
-																</select>&nbsp;
-																<select name='agedperiod'>
-																	<option value='hour' <?php selected('hour', $agedposts['agedperiod']); ?>><?php _e('Hour(s)','postindexer'); ?></option>
-																	<option value='day' <?php selected('day', $agedposts['agedperiod']); ?>><?php _e('Day(s)','postindexer'); ?></option>
-																	<option value='week' <?php selected('week', $agedposts['agedperiod']); ?>><?php _e('Week(s)','postindexer'); ?></option>
-																	<option value='month' <?php selected('month', $agedposts['agedperiod']); ?>><?php _e('Month(s)','postindexer'); ?></option>
-																	<option value='year' <?php selected('year', $agedposts['agedperiod']); ?>><?php _e('Year(s)','postindexer'); ?></option>
-																</select>&nbsp;
-
-																<br/>
-																<?php _e('Posts older than this time span will be removed from the global index.','postindexer'); ?>
-															</td>
-														</tr>
-													</tbody>
-												</table>
 												<?php
-													do_action( 'postindexer_options_page' );
+												if($this->model->blogs_for_rebuilding()) {
+													// Show a rebuilding message and timer
+													?>
+													<div id='rebuildingmessage'>
+													<?php _e('You currently have items in your indexing queue.','postindexer'); ?>
+													</div>
+													<?php
+												}
 												?>
 
-												<p class="submit">
-													<input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Update Settings','postindexer'); ?>" />
-												</p>
+												<?php
+												if ( isset($_GET['msg']) ) {
+													echo '<div id="message" class="updated fade"><p>' . $messages[(int) $_GET['msg']] . '</p></div>';
+													$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+												}
+												?>
 
-											</form>
-											<?php
-											break;
+												<form action='' method='post'>
 
-					case 'statistics':
-					default:
-											do_action('postindexer_statistics');
-											break;
+													<input type='hidden' name='action' value='postindexerupdateglobaloptions' />
+													<?php
+														wp_nonce_field('postindexer_update_global_options');
+													?>
+
+													<p class='description'><?php
+														_e('The settings below allow you to set the defaults for all the sites in your network and processing that will take place across your entire index. ','postindexer');
+														echo sprintf(__("You can override some of these settings on a site by site basis via the <a href=%s>Sites admin page</a>.",'postindexer'), network_admin_url('sites.php') ); ?>
+													</p>
+
+													<table class="form-table">
+														<tbody>
+															<tr valign="top">
+																<th scope="row"><label for="post_types"><?php _e('Default Post Types','postindexer'); ?></label></th>
+																<td>
+																	<textarea id="post_types" name="post_types" cols="80" rows="5"><?php echo implode("\n", $this->global_post_types); ?></textarea>
+																	<br/>
+																	<?php _e('These are the default post types that will be indexed by the plugin. Place each post type on a seperate line.','postindexer'); ?>
+																</td>
+															</tr>
+
+															<tr valign="top">
+																<th scope="row"><label for="agedperiod"><?php _e('Remove indexed posts older than','postindexer'); ?></label></th>
+																<td>
+																	<?php
+																		$agedposts = get_site_option( 'postindexer_agedposts', array( 'agedunit' => 1, 'agedperiod' => 'year' ) );
+																	?>
+																	<select name='agedunit'>
+																	<?php
+																		for($n = 1; $n <= 365; $n++) {
+																			?>
+																			<option value='<?php echo $n; ?>' <?php selected($n, $agedposts['agedunit']); ?>><?php echo $n; ?></option>
+																			<?php
+																		}
+																	?>
+																	</select>&nbsp;
+																	<select name='agedperiod'>
+																		<option value='hour' <?php selected('hour', $agedposts['agedperiod']); ?>><?php _e('Hour(s)','postindexer'); ?></option>
+																		<option value='day' <?php selected('day', $agedposts['agedperiod']); ?>><?php _e('Day(s)','postindexer'); ?></option>
+																		<option value='week' <?php selected('week', $agedposts['agedperiod']); ?>><?php _e('Week(s)','postindexer'); ?></option>
+																		<option value='month' <?php selected('month', $agedposts['agedperiod']); ?>><?php _e('Month(s)','postindexer'); ?></option>
+																		<option value='year' <?php selected('year', $agedposts['agedperiod']); ?>><?php _e('Year(s)','postindexer'); ?></option>
+																	</select>&nbsp;
+
+																	<br/>
+																	<?php _e('Posts older than this time span will be removed from the global index.','postindexer'); ?>
+																</td>
+															</tr>
+														</tbody>
+													</table>
+													<?php
+														do_action( 'postindexer_options_page' );
+													?>
+
+													<p class="submit">
+														<input type="submit" name="Submit" class="button-primary" value="<?php esc_attr_e('Update Settings','postindexer'); ?>" />
+													</p>
+
+												</form>
+												<?php
+												break;
+
+						case 'statistics':
+						default:
+												do_action('postindexer_statistics');
+												break;
 
 
+					}
+				} else {
+					do_action('postindexer_statistics');
 				}
 
 				?>
