@@ -1935,7 +1935,7 @@ class Network_Query {
 
 		$this->parse_query();
 
-		do_action_ref_array('pre_network_get_posts', array(&$this));
+		do_action_ref_array('network_pre_get_posts', array(&$this));
 
 		// Shorthand.
 		$q = &$this->query_vars;
@@ -2215,7 +2215,7 @@ class Network_Query {
 		}
 
 		// Allow plugins to contextually add/remove/modify the search section of the database query
-		$search = apply_filters_ref_array('posts_search', array( $search, &$this ) );
+		$search = apply_filters_ref_array('network_posts_search', array( $search, &$this ) );
 
 		// Taxonomies
 		if ( !$this->is_singular ) {
@@ -2523,8 +2523,8 @@ class Network_Query {
 		// Apply filters on where and join prior to paging so that any
 		// manipulations to them are reflected in the paging by day queries.
 		if ( !$q['suppress_filters'] ) {
-			$where = apply_filters_ref_array('posts_where', array( $where, &$this ) );
-			$join = apply_filters_ref_array('posts_join', array( $join, &$this ) );
+			$where = apply_filters_ref_array('network_posts_where', array( $where, &$this ) );
+			$join = apply_filters_ref_array('network_posts_join', array( $join, &$this ) );
 		}
 
 		// Paging
@@ -2587,16 +2587,16 @@ class Network_Query {
 		// Apply post-paging filters on where and join. Only plugins that
 		// manipulate paging queries should use these hooks.
 		if ( !$q['suppress_filters'] ) {
-			$where		= apply_filters_ref_array( 'posts_where_paged',	array( $where, &$this ) );
-			$groupby	= apply_filters_ref_array( 'posts_groupby',		array( $groupby, &$this ) );
-			$join		= apply_filters_ref_array( 'posts_join_paged',	array( $join, &$this ) );
-			$orderby	= apply_filters_ref_array( 'posts_orderby',		array( $orderby, &$this ) );
-			$distinct	= apply_filters_ref_array( 'posts_distinct',	array( $distinct, &$this ) );
-			$limits		= apply_filters_ref_array( 'post_limits',		array( $limits, &$this ) );
-			$fields		= apply_filters_ref_array( 'posts_fields',		array( $fields, &$this ) );
+			$where		= apply_filters_ref_array( 'network_posts_where_paged',	array( $where, &$this ) );
+			$groupby	= apply_filters_ref_array( 'network_posts_groupby',		array( $groupby, &$this ) );
+			$join		= apply_filters_ref_array( 'network_posts_join_paged',	array( $join, &$this ) );
+			$orderby	= apply_filters_ref_array( 'network_posts_orderby',		array( $orderby, &$this ) );
+			$distinct	= apply_filters_ref_array( 'network_posts_distinct',	array( $distinct, &$this ) );
+			$limits		= apply_filters_ref_array( 'network_post_limits',		array( $limits, &$this ) );
+			$fields		= apply_filters_ref_array( 'network_posts_fields',		array( $fields, &$this ) );
 
 			// Filter all clauses at once, for convenience
-			$clauses = (array) apply_filters_ref_array( 'posts_clauses', array( compact( $pieces ), &$this ) );
+			$clauses = (array) apply_filters_ref_array( 'network_posts_clauses', array( compact( $pieces ), &$this ) );
 			foreach ( $pieces as $piece )
 				$$piece = isset( $clauses[ $piece ] ) ? $clauses[ $piece ] : '';
 		}
@@ -2606,16 +2606,16 @@ class Network_Query {
 
 		// Filter again for the benefit of caching plugins. Regular plugins should use the hooks above.
 		if ( !$q['suppress_filters'] ) {
-			$where		= apply_filters_ref_array( 'posts_where_request',		array( $where, &$this ) );
-			$groupby	= apply_filters_ref_array( 'posts_groupby_request',		array( $groupby, &$this ) );
-			$join		= apply_filters_ref_array( 'posts_join_request',		array( $join, &$this ) );
-			$orderby	= apply_filters_ref_array( 'posts_orderby_request',		array( $orderby, &$this ) );
-			$distinct	= apply_filters_ref_array( 'posts_distinct_request',	array( $distinct, &$this ) );
-			$fields		= apply_filters_ref_array( 'posts_fields_request',		array( $fields, &$this ) );
-			$limits		= apply_filters_ref_array( 'post_limits_request',		array( $limits, &$this ) );
+			$where		= apply_filters_ref_array( 'network_posts_where_request',		array( $where, &$this ) );
+			$groupby	= apply_filters_ref_array( 'network_posts_groupby_request',		array( $groupby, &$this ) );
+			$join		= apply_filters_ref_array( 'network_posts_join_request',		array( $join, &$this ) );
+			$orderby	= apply_filters_ref_array( 'network_posts_orderby_request',		array( $orderby, &$this ) );
+			$distinct	= apply_filters_ref_array( 'network_posts_distinct_request',	array( $distinct, &$this ) );
+			$fields		= apply_filters_ref_array( 'network_posts_fields_request',		array( $fields, &$this ) );
+			$limits		= apply_filters_ref_array( 'network_post_limits_request',		array( $limits, &$this ) );
 
 			// Filter all clauses at once, for convenience
-			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( compact( $pieces ), &$this ) );
+			$clauses = (array) apply_filters_ref_array( 'network_posts_clauses_request', array( compact( $pieces ), &$this ) );
 			foreach ( $pieces as $piece )
 				$$piece = isset( $clauses[ $piece ] ) ? $clauses[ $piece ] : '';
 		}
@@ -2632,7 +2632,7 @@ class Network_Query {
 		$this->request = $old_request = "SELECT $found_rows $distinct $fields FROM $this->network_posts $join WHERE 1=1 $where $groupby $orderby $limits";
 
 		if ( !$q['suppress_filters'] ) {
-			$this->request = apply_filters_ref_array( 'posts_request', array( $this->request, &$this ) );
+			$this->request = apply_filters_ref_array( 'network_posts_request', array( $this->request, &$this ) );
 		}
 
 		if ( 'ids' == $q['fields'] ) {
@@ -2652,21 +2652,19 @@ class Network_Query {
 		}
 
 		$split_the_query = ( $old_request == $this->request && "$this->network_posts.*" == $fields && !empty( $limits ) && $q['posts_per_page'] < 500 );
-		$split_the_query = apply_filters( 'split_the_query', $split_the_query, $this );
+		$split_the_query = apply_filters( 'network_split_the_query', $split_the_query, $this );
 
 		if ( $split_the_query ) {
 			// First get the IDs and then fill in the objects
 
 			$this->request = "SELECT $found_rows $distinct $this->network_posts.BLOG_ID, $this->network_posts.ID FROM $this->network_posts $join WHERE 1=1 $where $groupby $orderby $limits";
 
-			$this->request = apply_filters( 'posts_request_ids', $this->request, $this );
+			$this->request = apply_filters( 'network_posts_request_ids', $this->request, $this );
 
 			$ids = $wpdb->get_results( $this->request );
 
 			if ( $ids ) {
 				$this->set_found_posts( $q, $limits );
-
-				_prime_post_caches( $ids, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 
 				foreach($ids as $id) {
 					$this->posts[] = network_get_post( $id->BLOG_ID, $id->ID );
@@ -2684,7 +2682,7 @@ class Network_Query {
 
 		// Raw results filter. Prior to status checks.
 		if ( !$q['suppress_filters'] )
-			$this->posts = apply_filters_ref_array('posts_results', array( $this->posts, &$this ) );
+			$this->posts = apply_filters_ref_array('network_posts_results', array( $this->posts, &$this ) );
 
 		/*
 		if ( !empty($this->posts) && $this->is_comment_feed && $this->is_singular ) {
@@ -2702,7 +2700,7 @@ class Network_Query {
 		*/
 
 		if ( !$q['suppress_filters'] )
-			$this->posts = apply_filters_ref_array('the_posts', array( $this->posts, &$this ) );
+			$this->posts = apply_filters_ref_array('network_the_posts', array( $this->posts, &$this ) );
 
 		$this->post_count = count($this->posts);
 
@@ -2727,8 +2725,8 @@ class Network_Query {
 		if ( $q['no_found_rows'] || empty( $limits ) )
 			return;
 
-		$this->found_posts = $wpdb->get_var( apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) ) );
-		$this->found_posts = apply_filters_ref_array( 'found_posts', array( $this->found_posts, &$this ) );
+		$this->found_posts = $wpdb->get_var( apply_filters_ref_array( 'network_found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) ) );
+		$this->found_posts = apply_filters_ref_array( 'network_found_posts', array( $this->found_posts, &$this ) );
 
 		$this->max_num_pages = ceil( $this->found_posts / $q['posts_per_page'] );
 	}
