@@ -631,11 +631,13 @@ if(!class_exists('postindexeradmin')) {
 
 			echo "var posttypedata = " . $this->get_json( array( "chart" => $post_type_results ) ) . ";\n";
 			echo "var blogcountdata = [\n";
+			if(!empty($blog_counts_data)) {
 				foreach($blog_counts_data as $bcd) {
 					echo "{label: '" . $bcd["label"] . "', data: " . $this->get_data( $bcd['data'] ) . "},\n";
 				}
+			}
 			echo "];\n";
-			echo "var blogcountinfo = " . $this->get_json( array( "ticks" => array_values($blog_type_ticks), "maxcount" => $blog_count_max  ) ) . ";\n";
+			echo "var blogcountinfo = " . $this->get_json( array( "ticks" => array_values( (array) $blog_type_ticks), "maxcount" => $blog_count_max  ) ) . ";\n";
 
 			echo "\n" . '/* ]]> */ ';
 			echo '</script>';
