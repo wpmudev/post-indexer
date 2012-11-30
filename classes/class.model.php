@@ -209,7 +209,7 @@ if(!class_exists('postindexermodel')) {
 
 		function blogs_for_rebuilding() {
 
-			$sql = $this->db->prepare( "SELECT count(*) as rebuildblogs FROM {$this->network_rebuildqueue}" );
+			$sql = "SELECT count(*) as rebuildblogs FROM {$this->network_rebuildqueue}";
 
 			$var = $this->db->get_var( $sql );
 
@@ -700,7 +700,7 @@ if(!class_exists('postindexermodel')) {
 
 		function get_summary_post_types() {
 
-			$sql = $this->db->prepare( "SELECT post_type, count(*) AS post_type_count FROM {$this->network_posts} GROUP BY post_type ORDER BY post_type_count DESC" );
+			$sql = "SELECT post_type, count(*) AS post_type_count FROM {$this->network_posts} GROUP BY post_type ORDER BY post_type_count DESC";
 
 			return $this->db->get_results( $sql );
 
@@ -708,7 +708,7 @@ if(!class_exists('postindexermodel')) {
 
 		function get_summary_blog_totals() {
 
-			$sql = $this->db->prepare( "SELECT BLOG_ID, count(*) AS blog_count FROM {$this->network_posts} GROUP BY BLOG_ID ORDER BY blog_count DESC LIMIT 15" );
+			$sql = "SELECT BLOG_ID, count(*) AS blog_count FROM {$this->network_posts} GROUP BY BLOG_ID ORDER BY blog_count DESC LIMIT 15";
 
 			return $this->db->get_results( $sql );
 
@@ -716,10 +716,10 @@ if(!class_exists('postindexermodel')) {
 
 		function get_summary_blog_post_type_totals( $ids = array() ) {
 
-			$ids = $this->db->get_col( $this->db->prepare( "SELECT BLOG_ID, count(*) AS blog_count FROM {$this->network_posts} GROUP BY BLOG_ID ORDER BY blog_count DESC LIMIT 15" ) );
+			$ids = $this->db->get_col( "SELECT BLOG_ID, count(*) AS blog_count FROM {$this->network_posts} GROUP BY BLOG_ID ORDER BY blog_count DESC LIMIT 15" );
 			$ids = "'" . implode("','", $ids) . "'";
 
-			$sql = $this->db->prepare( "SELECT BLOG_ID, post_type, count(*) AS blog_type_count FROM {$this->network_posts} WHERE BLOG_ID IN (" . $ids . ") GROUP BY BLOG_ID, post_type ORDER BY blog_id, post_type DESC LIMIT 15" );
+			$sql = "SELECT BLOG_ID, post_type, count(*) AS blog_type_count FROM {$this->network_posts} WHERE BLOG_ID IN (" . $ids . ") GROUP BY BLOG_ID, post_type ORDER BY blog_id, post_type DESC LIMIT 15";
 
 			return $this->db->get_results( $sql );
 
@@ -727,7 +727,7 @@ if(!class_exists('postindexermodel')) {
 
 		function get_summary_single_site_blog_post_type_totals( $id ) {
 
-			$sql = $this->db->prepare( "SELECT BLOG_ID, post_type, count(*) AS blog_type_count FROM {$this->network_posts} WHERE BLOG_ID = %d GROUP BY BLOG_ID, post_type ORDER BY blog_id, post_type DESC LIMIT 15", $id );
+			$sql = $this->db->prepare( "SELECT BLOG_ID, post_type, count(*) AS blog_type_count FROM {$this->network_posts} WHERE BLOG_ID = %d GROUP BY BLOG_ID, post_type ORDER BY blog_id, post_type DESC LIMIT %d", $id, 15 );
 
 			return $this->db->get_results( $sql );
 
@@ -735,7 +735,7 @@ if(!class_exists('postindexermodel')) {
 
 		function get_summary_recently_indexed() {
 
-			$sql = $this->db->prepare( "SELECT * FROM {$this->network_posts} ORDER BY post_modified_gmt DESC LIMIT 15" );
+			$sql = $this->db->prepare( "SELECT * FROM {$this->network_posts} ORDER BY post_modified_gmt DESC LIMIT %d", 15 );
 
 			return $this->db->get_results( $sql );
 
@@ -743,7 +743,7 @@ if(!class_exists('postindexermodel')) {
 
 		function get_summary_sites_in_queue() {
 
-			$sql = $this->db->prepare( "SELECT count(*) AS inqueue FROM {$this->network_rebuildqueue}" );
+			$sql = "SELECT count(*) AS inqueue FROM {$this->network_rebuildqueue}";
 
 			return $this->db->get_var( $sql );
 
@@ -751,7 +751,7 @@ if(!class_exists('postindexermodel')) {
 
 		function get_summary_sites_in_queue_processing() {
 
-			$sql = $this->db->prepare( "SELECT count(*) AS inqueue FROM {$this->network_rebuildqueue} WHERE rebuild_progress > 0" );
+			$sql = $this->db->prepare( "SELECT count(*) AS inqueue FROM {$this->network_rebuildqueue} WHERE rebuild_progress > %d", 0 );
 
 			return $this->db->get_var( $sql );
 
@@ -759,7 +759,7 @@ if(!class_exists('postindexermodel')) {
 
 		function get_summary_sites_in_queue_not_processing() {
 
-			$sql = $this->db->prepare( "SELECT count(*) AS inqueue FROM {$this->network_rebuildqueue} WHERE rebuild_progress = 0" );
+			$sql = $this->db->prepare( "SELECT count(*) AS inqueue FROM {$this->network_rebuildqueue} WHERE rebuild_progress = %d", 0 );
 
 			return $this->db->get_var( $sql );
 
