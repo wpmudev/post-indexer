@@ -230,10 +230,10 @@ if(!class_exists('postindexermodel')) {
 
 		function rebuild_all_blogs() {
 
-			$sql = $this->db->prepare( "DELETE FROM {$this->network_rebuildqueue}");
+			$sql = "DELETE FROM {$this->network_rebuildqueue}";
 			$this->db->query( $sql );
 
-			$sql = $this->db->prepare( "INSERT INTO {$this->network_rebuildqueue} SELECT blog_id, timestamp(now()), 0 FROM {$this->db->blogs}");
+			$sql = "INSERT INTO {$this->network_rebuildqueue} SELECT blog_id, timestamp(now()), 0 FROM {$this->db->blogs}";
 			$this->db->query( $sql );
 
 		}
@@ -348,7 +348,7 @@ if(!class_exists('postindexermodel')) {
 
 			if($blog_id !== false) $this->switch_to_blog( $blog_id );
 
-			$max_id = $this->db->get_var( $this->db->prepare( "SELECT MAX(ID) as max_id FROM {$this->db->posts}" ) );
+			$max_id = $this->db->get_var( "SELECT MAX(ID) as max_id FROM {$this->db->posts}" );
 
 			if($blog_id !== false) $this->restore_current_blog();
 
@@ -445,6 +445,8 @@ if(!class_exists('postindexermodel')) {
 
 			// Add the post record to the network tables
 			$this->insert_or_update( $this->network_posts, $post );
+
+			do_action( 'postindexer_index_post', $post );
 
 		}
 
