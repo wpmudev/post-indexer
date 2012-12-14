@@ -517,6 +517,7 @@ if(!class_exists('postindexermodel')) {
 			// Remove all the networked term relationship information for the blog_id
 			$this->db->query( $this->db->prepare( "DELETE FROM {$this->network_term_relationships} WHERE blog_id = %d AND object_id = %d", $blog_id, $post_id ) );
 
+			do_action( 'postindexer_remove_indexed_post', $post_id, $blog_id );
 		}
 
 		function remove_orphaned_postmeta_entries() {
