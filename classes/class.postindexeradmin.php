@@ -107,90 +107,94 @@ if(!class_exists('postindexeradmin')) {
 		}
 
 		function process_sites_page() {
-			switch($_GET['action']) {
-				case 'disablesitepostindexer':	$blog_id = $_GET['blog_id'];
-												check_admin_referer('disable_site_postindexer_' . $blog_id);
-												if ( !current_user_can( 'manage_sites' ) )
-													wp_die( __( 'You do not have permission to access this page.' ) );
 
-												if ( $blog_id != '0' ) {
-													$this->model->disable_indexing_for_blog( $blog_id );
-													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'disableindexing' ), wp_get_referer() ) );
-												} else {
-													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_disableindexing' ), wp_get_referer() ) );
-												}
-												break;
+			if( isset( $_GET['action'] ) ) {
+				switch($_GET['action']) {
+					case 'disablesitepostindexer':	$blog_id = $_GET['blog_id'];
+													check_admin_referer('disable_site_postindexer_' . $blog_id);
+													if ( !current_user_can( 'manage_sites' ) )
+														wp_die( __( 'You do not have permission to access this page.' ) );
 
-				case 'enablesitepostindexer':	$blog_id = $_GET['blog_id'];
-												check_admin_referer('enable_site_postindexer_' . $blog_id);
-												if ( !current_user_can( 'manage_sites' ) )
-													wp_die( __( 'You do not have permission to access this page.' ) );
+													if ( $blog_id != '0' ) {
+														$this->model->disable_indexing_for_blog( $blog_id );
+														wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'disableindexing' ), wp_get_referer() ) );
+													} else {
+														wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_disableindexing' ), wp_get_referer() ) );
+													}
+													break;
 
-												if ( $blog_id != '0' ) {
-													$this->model->enable_indexing_for_blog( $blog_id );
-													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'enableindexing' ), wp_get_referer() ) );
-												} else {
-													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_enableindexing' ), wp_get_referer() ) );
-												}
-												break;
-				case 'editsitepostindexer':
-												break;
+					case 'enablesitepostindexer':	$blog_id = $_GET['blog_id'];
+													check_admin_referer('enable_site_postindexer_' . $blog_id);
+													if ( !current_user_can( 'manage_sites' ) )
+														wp_die( __( 'You do not have permission to access this page.' ) );
 
-				case 'rebuildsitepostindexer':	$blog_id = $_GET['blog_id'];
-												check_admin_referer('rebuild_site_postindexer_' . $blog_id);
-												if ( !current_user_can( 'manage_sites' ) )
-													wp_die( __( 'You do not have permission to access this page.' ) );
-
-												if ( $blog_id != '0' ) {
-													$this->model->rebuild_blog( $blog_id );
-													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'rebuildindexing' ), wp_get_referer() ) );
-												} else {
-													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_rebuildindexing' ), wp_get_referer() ) );
-												}
-												break;
-
-				case 'updatepostindexersitesettings':
-												$blog_id = $_GET['blog_id'];
-												check_admin_referer( 'postindexer_update_site_settings_' . $blog_id );
-												if ( !current_user_can( 'manage_sites' ) )
-													wp_die( __( 'You do not have permission to access this page.' ) );
-
-												$this->model->switch_to_blog( $blog_id );
-
-												// Indexing
-												if($_GET['postindexer_active'] == 'yes') {
-													$indexing = get_option( 'postindexer_active', 'yes' );
-													if($indexing != 'yes') {
-														// Only set for indexing and queue if it's not already enabled
+													if ( $blog_id != '0' ) {
 														$this->model->enable_indexing_for_blog( $blog_id );
+														wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'enableindexing' ), wp_get_referer() ) );
+													} else {
+														wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_enableindexing' ), wp_get_referer() ) );
 													}
-												} elseif($_GET['postindexer_active'] == 'no') {
-													$this->model->disable_indexing_for_blog( $blog_id );
-												}
+													break;
+					case 'editsitepostindexer':
+													break;
 
-												// Post types
-												$post_types = $_GET['postindexer_posttypes'];
-												$to_store = array();
-												if(is_array($post_types)) {
-													array_map('trim', $post_types);
+					case 'rebuildsitepostindexer':	$blog_id = $_GET['blog_id'];
+													check_admin_referer('rebuild_site_postindexer_' . $blog_id);
+													if ( !current_user_can( 'manage_sites' ) )
+														wp_die( __( 'You do not have permission to access this page.' ) );
 
-													$live_post_types = get_post_types( '' , 'objects' );
-													// Run a check to make sure no erronious post types have been passed
-													foreach($post_types as $key => $post_type) {
-														if(in_array( $post_type, array_keys($live_post_types) )) {
-															$to_store[] = $post_type;
+													if ( $blog_id != '0' ) {
+														$this->model->rebuild_blog( $blog_id );
+														wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'rebuildindexing' ), wp_get_referer() ) );
+													} else {
+														wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_rebuildindexing' ), wp_get_referer() ) );
+													}
+													break;
+
+					case 'updatepostindexersitesettings':
+													$blog_id = $_GET['blog_id'];
+													check_admin_referer( 'postindexer_update_site_settings_' . $blog_id );
+													if ( !current_user_can( 'manage_sites' ) )
+														wp_die( __( 'You do not have permission to access this page.' ) );
+
+													$this->model->switch_to_blog( $blog_id );
+
+													// Indexing
+													if($_GET['postindexer_active'] == 'yes') {
+														$indexing = get_option( 'postindexer_active', 'yes' );
+														if($indexing != 'yes') {
+															// Only set for indexing and queue if it's not already enabled
+															$this->model->enable_indexing_for_blog( $blog_id );
 														}
+													} elseif($_GET['postindexer_active'] == 'no') {
+														$this->model->disable_indexing_for_blog( $blog_id );
 													}
 
-													update_option('postindexer_posttypes', $to_store);
-												}
+													// Post types
+													$post_types = $_GET['postindexer_posttypes'];
+													$to_store = array();
+													if(is_array($post_types)) {
+														array_map('trim', $post_types);
 
-												$this->model->restore_current_blog();
-												//changed_siteindexing
-												wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'changed_siteindexing' ), $_GET['comefrom'] ) );
-												break;
+														$live_post_types = get_post_types( '' , 'objects' );
+														// Run a check to make sure no erronious post types have been passed
+														foreach($post_types as $key => $post_type) {
+															if(in_array( $post_type, array_keys($live_post_types) )) {
+																$to_store[] = $post_type;
+															}
+														}
 
+														update_option('postindexer_posttypes', $to_store);
+													}
+
+													$this->model->restore_current_blog();
+													//changed_siteindexing
+													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'changed_siteindexing' ), $_GET['comefrom'] ) );
+													break;
+
+				}
 			}
+
 		}
 
 		function add_sites_column_heading( $columns ) {
