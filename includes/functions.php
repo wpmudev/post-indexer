@@ -45,12 +45,12 @@ function network_get_the_title( $blog_id = 0, $id = 0 ) {
 	$title = isset($network_post->post_title) ? $network_post->post_title : '';
 	$id = isset($network_post->ID) ? $network_post->ID : (int) $id;
 
-	return apply_filters( 'the_title', $title, $id );
+	return apply_filters( 'network_the_title', $title, $id );
 }
 
 function network_get_the_title_rss() {
 	$title = network_get_the_title();
-	$title = apply_filters('the_title_rss', $title);
+	$title = apply_filters('network_the_title_rss', $title);
 	return $title;
 }
 
@@ -73,7 +73,7 @@ function network_the_content_feed($feed_type = null) {
 
 function network_the_excerpt_rss() {
 	$output = network_get_the_excerpt();
-	echo apply_filters('the_excerpt_rss', $output);
+	echo apply_filters('network_the_excerpt_rss', $output);
 }
 
 function network_get_permalink( $blog_id = 0, $id = 0 ) {
@@ -91,7 +91,7 @@ function network_get_permalink( $blog_id = 0, $id = 0 ) {
 }
 
 function network_the_permalink_rss() {
-	echo esc_url( apply_filters('the_permalink_rss', network_get_permalink() ));
+	echo esc_url( apply_filters('network_the_permalink_rss', network_get_permalink() ));
 }
 
 function network_comments_link_feed() {
@@ -250,11 +250,11 @@ function network_get_the_category( $blog_id = 0, $id = 0 ) {
 	}
 
 	// Filter name is plural because we return alot of categories (possibly more than #13237) not just one
-	return apply_filters( 'get_the_categories', $categories );
+	return apply_filters( 'network_get_the_categories', $categories );
 }
 
 function network_get_the_tags( $blog_id = 0, $id = 0 ) {
-	return apply_filters( 'get_the_tags', network_get_the_terms( $blog_id, $id, 'post_tag' ) );
+	return apply_filters( 'network_get_the_tags', network_get_the_terms( $blog_id, $id, 'post_tag' ) );
 }
 
 function network_get_the_category_rss($type = null) {
@@ -290,7 +290,7 @@ function network_get_the_category_rss($type = null) {
 			$the_list .= "\t\t<category><![CDATA[" . @html_entity_decode( $cat_name, ENT_COMPAT, get_option('blog_charset') ) . "]]></category>\n";
 	}
 
-	return apply_filters('the_category_rss', $the_list, $type);
+	return apply_filters('network_the_category_rss', $the_list, $type);
 }
 
 function network_the_category_rss($type = null) {
@@ -355,12 +355,12 @@ function network_get_the_guid( $blog_id = 0, $id = 0 ) {
 
 	$post = &network_get_post($blog_id, $id);
 
-	return apply_filters('get_the_guid', $post->guid);
+	return apply_filters('network_get_the_guid', $post->guid);
 }
 
 function network_the_content($more_link_text = null, $stripteaser = false) {
 	$content = network_get_the_content($more_link_text, $stripteaser);
-	$content = apply_filters('the_content', $content);
+	$content = apply_filters('network_the_content', $content);
 	$content = str_replace(']]>', ']]&gt;', $content);
 	echo $content;
 }
@@ -398,7 +398,7 @@ function network_get_the_content($more_link_text = null, $stripteaser = false) {
 			$output .= '<span id="more-' . $post->ID . '"></span>' . $content[1];
 		} else {
 			if ( ! empty($more_link_text) ) {
-				$output .= apply_filters( 'the_content_more_link', ' <a href="' . network_get_permalink( $network_post->BLOG_ID, $network_post->ID ) . "#more-{$network_post->ID}\" class=\"more-link\">$more_link_text</a>", $more_link_text );
+				$output .= apply_filters( 'network_the_content_more_link', ' <a href="' . network_get_permalink( $network_post->BLOG_ID, $network_post->ID ) . "#more-{$network_post->ID}\" class=\"more-link\">$more_link_text</a>", $more_link_text );
 			}
 			$output = force_balance_tags($output);
 		}
@@ -411,15 +411,24 @@ function network_get_the_content($more_link_text = null, $stripteaser = false) {
 }
 
 function network_the_excerpt() {
-	echo apply_filters('the_excerpt', network_get_the_excerpt());
+	echo apply_filters('network_the_excerpt', network_get_the_excerpt());
 }
 
 function network_get_the_excerpt() {
-	global $network_post;
+	global $network_post, $post;
 
 	$output = $network_post->post_excerpt;
 
-	return apply_filters('get_the_excerpt', $output);
+	// back up post as we need it later
+	$oldpost = $post;
+	// set the post to our network post
+	$post = $network_post;
+	// get the excerpt
+	$excerpt = apply_filters('get_the_excerpt', $output);
+	// reset the post variable in case it's needed elsewhere
+	$post = $oldpost;
+	// return the excerpt
+	return $excerpt;
 }
 
 function network_get_post_time( $d = 'U', $gmt = false, $post = null, $translate = false ) { // returns timestamp
@@ -433,7 +442,7 @@ function network_get_post_time( $d = 'U', $gmt = false, $post = null, $translate
 		$time = $post->post_date;
 
 	$time = mysql2date($d, $time, $translate);
-	return apply_filters('get_post_time', $time, $d, $gmt);
+	return apply_filters('network_get_post_time', $time, $d, $gmt);
 }
 
 function network_get_the_author() {
@@ -455,7 +464,7 @@ function network_get_the_author() {
 		}
 	}
 
-	return apply_filters('the_author', is_object($authordata) ? $authordata->display_name : null);
+	return apply_filters('network_the_author', is_object($authordata) ? $authordata->display_name : null);
 }
 
 function network_get_the_author_id() {
@@ -474,7 +483,7 @@ function network_get_the_author_id() {
 		}
 	}
 
-	return apply_filters('the_author', is_object($authordata) ? $authordata->display_name : null);
+	return apply_filters('network_the_author', is_object($authordata) ? $authordata->display_name : null);
 }
 
 function network_the_author() {
@@ -532,7 +541,7 @@ function network_get_lastpostmodified( $timezone = 'server', $post_types = 'post
 
 	$post_types = "'" . implode( "', '", $post_types ) . "'";
 
-	switch ( $timezone ) {
+	switch ( strtolower($timezone) ) {
 		case 'gmt':
 			$date = $wpdb->get_var("SELECT post_modified_gmt FROM {$wpdb->base_prefix}network_posts WHERE post_status = 'publish' AND post_type IN ({$post_types}) ORDER BY post_modified_gmt DESC LIMIT 1");
 			break;
