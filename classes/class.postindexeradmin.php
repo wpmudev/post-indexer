@@ -397,10 +397,12 @@ if(!class_exists('postindexeradmin')) {
 
 										$indexingtypes = get_option( 'postindexer_posttypes', $this->global_post_types );
 
-										$post_types = get_post_types( '' , 'objects' );
-										foreach($post_types as $key => $post_type) {
+										//$post_types = get_post_types( '' , 'objects' );
+										$post_types = $this->model->get_active_post_types();
+
+										foreach($post_types as $post_type) {
 											?>
-												<label><input type='checkbox' name='postindexer_posttypes[]' value='<?php echo $key; ?>' <?php if(in_array($key, $indexingtypes)) { echo "checked='checked'"; } ?> />&nbsp;<?php echo $post_type->name; ?></label><br/>
+												<label><input type='checkbox' name='postindexer_posttypes[]' value='<?php echo $post_type; ?>' <?php if(in_array($post_type, $indexingtypes)) { echo "checked='checked'"; } ?> />&nbsp;<?php echo $post_type; ?></label><br/>
 											<?php
 										}
 

@@ -645,6 +645,24 @@ if(!class_exists('postindexermodel')) {
 
 		}
 
+		function get_active_post_types( $blog_id = false ) {
+
+			if( $blog_id != false ) {
+				$this->switch_to_blog( $blog_id );
+			}
+
+			$sql = "SELECT DISTINCT post_type FROM {$this->db->posts}";
+
+			$post_types = $this->db->get_col( $sql );
+
+			if( $blog_id != false ) {
+				$this->restore_current_blog( );
+			}
+
+			return $post_types;
+
+		}
+
 		// Useful functions
 		function &get_post( $blog_id, $network_post_id ) {
 
