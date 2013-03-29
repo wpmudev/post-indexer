@@ -1945,7 +1945,7 @@ class Network_Query {
 		$q = $this->fill_query_vars($q);
 
 		// Parse meta query
-		$this->meta_query = new WP_Meta_Query();
+		$this->meta_query = new WP_Network_Meta_Query();
 		$this->meta_query->parse_query_vars( $q );
 
 		// Set a flag if a pre_get_posts hook changed the query vars.
@@ -3873,13 +3873,13 @@ class WP_Network_Meta_Query {
 	 * @param object $context (optional) The main query object
 	 * @return array( 'join' => $join_sql, 'where' => $where_sql )
 	 */
-	function get_sql( $type, $primary_table, $primary_id_column, $secondary_id_column, $context = null ) {
+	function get_sql( $type, $primary_table, $primary_id_column, $context = null ) {
 		global $wpdb;
 
 		if ( ! $meta_table = _get_meta_table( $type ) )
 			return false;
 
-		$meta_id_column = esc_sql( $type . '_id' );
+		$meta_id_column = esc_sql( str_replace( 'network_', '', $type ) . '_id' );
 
 		$join = array();
 		$where = array();
@@ -3901,7 +3901,7 @@ class WP_Network_Meta_Query {
 
 		// Specify all the meta_key only queries in one go
 		if ( $key_only_queries ) {
-			$join[]  = "INNER JOIN $meta_table ON $primary_table.$primary_id_column = $meta_table.$meta_id_column";
+			$join[]  = "INNER JOIN $meta_table ON $primary_table.$primary_id_column = $meta_table.$meta_id_column AND $primary_table.BLOG_ID = $meta_table.blog_id";
 
 			foreach ( $key_only_queries as $key => $q )
 				$where["key-only-$key"] = $wpdb->prepare( "$meta_table.meta_key = %s", trim( $q['key'] ) );
@@ -3938,7 +3938,7 @@ class WP_Network_Meta_Query {
 			if ( 'NOT EXISTS' == $meta_compare ) {
 				$join[$i]  = "LEFT JOIN $meta_table";
 				$join[$i] .= $i ? " AS $alias" : '';
-				$join[$i] .= " ON ($primary_table.$primary_id_column = $alias.$meta_id_column AND $alias.meta_key = '$meta_key')";
+				$join[$i] .= " ON ($primary_table.$primary_id_column = $alias.$meta_id_column AND $primary_table.BLOG_ID = $alias.blog_id AND $alias.meta_key = '$meta_key')";
 
 				$where[$k] = ' ' . $alias . '.' . $meta_id_column . ' IS NULL';
 
@@ -3947,7 +3947,7 @@ class WP_Network_Meta_Query {
 
 			$join[$i]  = "INNER JOIN $meta_table";
 			$join[$i] .= $i ? " AS $alias" : '';
-			$join[$i] .= " ON ($primary_table.$primary_id_column = $alias.$meta_id_column)";
+			$join[$i] .= " ON ($primary_table.$primary_id_column = $alias.$meta_id_column AND $primary_table.BLOG_ID = $alias.blog_id)";
 
 			$where[$k] = '';
 			if ( !empty( $meta_key ) )
