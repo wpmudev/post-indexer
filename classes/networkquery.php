@@ -2517,6 +2517,7 @@ class Network_Query {
 
 		if ( !empty( $this->meta_query->queries ) ) {
 			$clauses = $this->meta_query->get_sql( 'network_post', $this->network_posts, 'ID', $this );
+			//print_r($clauses);
 			$join .= $clauses['join'];
 			$where .= $clauses['where'];
 		}
@@ -2631,7 +2632,7 @@ class Network_Query {
 			$found_rows = 'SQL_CALC_FOUND_ROWS';
 
 		$this->request = $old_request = "SELECT $found_rows $distinct $fields FROM $this->network_posts $join WHERE 1=1 $where $groupby $orderby $limits";
-
+		//echo $this->request;
 		if ( !$q['suppress_filters'] ) {
 			$this->request = apply_filters_ref_array( 'network_posts_request', array( $this->request, &$this ) );
 		}
