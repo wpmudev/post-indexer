@@ -827,6 +827,7 @@ class Network_Query {
 	/*
 	*	Network query tables
 	*/
+	var $db;
 	// tables list
 	var $oldtables =  array( 'site_posts', 'term_counts', 'site_terms', 'site_term_relationships' );
 	var $tables = array( 'network_posts', 'network_rebuildqueue', 'network_postmeta', 'network_terms', 'network_term_taxonomy', 'network_term_relationships' );
@@ -2515,7 +2516,7 @@ class Network_Query {
 		}
 
 		if ( !empty( $this->meta_query->queries ) ) {
-			$clauses = $this->meta_query->get_sql( 'post', $this->network_posts, 'ID', $this );
+			$clauses = $this->meta_query->get_sql( 'network_post', $this->network_posts, 'ID', $this );
 			$join .= $clauses['join'];
 			$where .= $clauses['where'];
 		}
@@ -2975,11 +2976,15 @@ class Network_Query {
 
 		foreach($this->tables as $table) {
 			$this->$table = $wpdb->base_prefix . $table;
+			// mirror tables in $wpdb as needed in meta tables
+			$wpdb->$table = $wpdb->base_prefix . $table;
 		}
 
 		if(defined('PI_LOAD_OLD_TABLES') && PI_LOAD_OLD_TABLES === true ) {
 			foreach($this->oldtables as $table) {
 				$this->$table = $wpdb->base_prefix . $table;
+				// mirror tables in $wpdb as needed in meta tables
+				$wpdb->$table = $wpdb->base_prefix . $table;
 			}
 		}
 
@@ -3769,6 +3774,233 @@ class Network_Tax_Query {
 
 		$query['terms'] = $terms;
 		$query['field'] = $resulting_field;
+	}
+}
+
+/**
+ * Container class for a multiple metadata network query - based on WP_Meta_Query
+ *
+ */
+class WP_Network_Meta_Query {
+	/**
+	* List of metadata queries. A single query is an associative array:
+	* - 'key' string The meta key
+	* - 'value' string|array The meta value
+	* - 'compare' (optional) string How to compare the key to the value.
+	*              Possible values: '=', '!=', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN'.
+	*              Default: '='
+	* - 'type' string (optional) The type of the value.
+	*              Possible values: 'NUMERIC', 'BINARY', 'CHAR', 'DATE', 'DATETIME', 'DECIMAL', 'SIGNED', 'TIME', 'UNSIGNED'.
+	*              Default: 'CHAR'
+	*
+	* @since 3.2.0
+	* @access public
+	* @var array
+	*/
+	public $queries = array();
+
+	/**
+	 * The relation between the queries. Can be one of 'AND' or 'OR'.
+	 *
+	 * @since 3.2.0
+	 * @access public
+	 * @var string
+	 */
+	public $relation;
+
+	/**
+	 * Constructor
+	 *
+	 * @param array $meta_query (optional) A meta query
+	 */
+	function __construct( $meta_query = false ) {
+		if ( !$meta_query )
+			return;
+
+		if ( isset( $meta_query['relation'] ) && strtoupper( $meta_query['relation'] ) == 'OR' ) {
+			$this->relation = 'OR';
+		} else {
+			$this->relation = 'AND';
+		}
+
+		$this->queries = array();
+
+		foreach ( $meta_query as $key => $query ) {
+			if ( ! is_array( $query ) )
+				continue;
+
+			$this->queries[] = $query;
+		}
+	}
+
+	/**
+	 * Constructs a meta query based on 'meta_*' query vars
+	 *
+	 * @since 3.2.0
+	 * @access public
+	 *
+	 * @param array $qv The query variables
+	 */
+	function parse_query_vars( $qv ) {
+		$meta_query = array();
+
+		// Simple query needs to be first for orderby=meta_value to work correctly
+		foreach ( array( 'key', 'compare', 'type' ) as $key ) {
+			if ( !empty( $qv[ "meta_$key" ] ) )
+				$meta_query[0][ $key ] = $qv[ "meta_$key" ];
+		}
+
+		// WP_Query sets 'meta_value' = '' by default
+		if ( isset( $qv[ 'meta_value' ] ) && '' !== $qv[ 'meta_value' ] )
+			$meta_query[0]['value'] = $qv[ 'meta_value' ];
+
+		if ( !empty( $qv['meta_query'] ) && is_array( $qv['meta_query'] ) ) {
+			$meta_query = array_merge( $meta_query, $qv['meta_query'] );
+		}
+
+		$this->__construct( $meta_query );
+	}
+
+	/**
+	 * Generates SQL clauses to be appended to a main query.
+	 *
+	 * @since 3.2.0
+	 * @access public
+	 *
+	 * @param string $type Type of meta
+	 * @param string $primary_table
+	 * @param string $primary_id_column
+	 * @param object $context (optional) The main query object
+	 * @return array( 'join' => $join_sql, 'where' => $where_sql )
+	 */
+	function get_sql( $type, $primary_table, $primary_id_column, $secondary_id_column, $context = null ) {
+		global $wpdb;
+
+		if ( ! $meta_table = _get_meta_table( $type ) )
+			return false;
+
+		$meta_id_column = esc_sql( $type . '_id' );
+
+		$join = array();
+		$where = array();
+
+		$key_only_queries = array();
+		$queries = array();
+
+		// Split out the meta_key only queries (we can only do this for OR)
+		if ( 'OR' == $this->relation ) {
+			foreach ( $this->queries as $k => $q ) {
+				if ( ! isset( $q['value'] ) && ! empty( $q['key'] ) )
+					$key_only_queries[$k] = $q;
+				else
+					$queries[$k] = $q;
+			}
+		} else {
+			$queries = $this->queries;
+		}
+
+		// Specify all the meta_key only queries in one go
+		if ( $key_only_queries ) {
+			$join[]  = "INNER JOIN $meta_table ON $primary_table.$primary_id_column = $meta_table.$meta_id_column";
+
+			foreach ( $key_only_queries as $key => $q )
+				$where["key-only-$key"] = $wpdb->prepare( "$meta_table.meta_key = %s", trim( $q['key'] ) );
+		}
+
+		foreach ( $queries as $k => $q ) {
+			$meta_key = isset( $q['key'] ) ? trim( $q['key'] ) : '';
+			$meta_type = isset( $q['type'] ) ? strtoupper( $q['type'] ) : 'CHAR';
+
+			if ( 'NUMERIC' == $meta_type )
+				$meta_type = 'SIGNED';
+			elseif ( ! in_array( $meta_type, array( 'BINARY', 'CHAR', 'DATE', 'DATETIME', 'DECIMAL', 'SIGNED', 'TIME', 'UNSIGNED' ) ) )
+				$meta_type = 'CHAR';
+
+			$meta_value = isset( $q['value'] ) ? $q['value'] : null;
+
+			if ( isset( $q['compare'] ) )
+				$meta_compare = strtoupper( $q['compare'] );
+			else
+				$meta_compare = is_array( $meta_value ) ? 'IN' : '=';
+
+			if ( ! in_array( $meta_compare, array(
+				'=', '!=', '>', '>=', '<', '<=',
+				'LIKE', 'NOT LIKE',
+				'IN', 'NOT IN',
+				'BETWEEN', 'NOT BETWEEN',
+				'NOT EXISTS'
+			) ) )
+				$meta_compare = '=';
+
+			$i = count( $join );
+			$alias = $i ? 'mt' . $i : $meta_table;
+
+			if ( 'NOT EXISTS' == $meta_compare ) {
+				$join[$i]  = "LEFT JOIN $meta_table";
+				$join[$i] .= $i ? " AS $alias" : '';
+				$join[$i] .= " ON ($primary_table.$primary_id_column = $alias.$meta_id_column AND $alias.meta_key = '$meta_key')";
+
+				$where[$k] = ' ' . $alias . '.' . $meta_id_column . ' IS NULL';
+
+				continue;
+			}
+
+			$join[$i]  = "INNER JOIN $meta_table";
+			$join[$i] .= $i ? " AS $alias" : '';
+			$join[$i] .= " ON ($primary_table.$primary_id_column = $alias.$meta_id_column)";
+
+			$where[$k] = '';
+			if ( !empty( $meta_key ) )
+				$where[$k] = $wpdb->prepare( "$alias.meta_key = %s", $meta_key );
+
+			if ( is_null( $meta_value ) ) {
+				if ( empty( $where[$k] ) )
+					unset( $join[$i] );
+				continue;
+			}
+
+			if ( in_array( $meta_compare, array( 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN' ) ) ) {
+				if ( ! is_array( $meta_value ) )
+					$meta_value = preg_split( '/[,\s]+/', $meta_value );
+
+				if ( empty( $meta_value ) ) {
+					unset( $join[$i] );
+					continue;
+				}
+			} else {
+				$meta_value = trim( $meta_value );
+			}
+
+			if ( 'IN' == substr( $meta_compare, -2) ) {
+				$meta_compare_string = '(' . substr( str_repeat( ',%s', count( $meta_value ) ), 1 ) . ')';
+			} elseif ( 'BETWEEN' == substr( $meta_compare, -7) ) {
+				$meta_value = array_slice( $meta_value, 0, 2 );
+				$meta_compare_string = '%s AND %s';
+			} elseif ( 'LIKE' == substr( $meta_compare, -4 ) ) {
+				$meta_value = '%' . like_escape( $meta_value ) . '%';
+				$meta_compare_string = '%s';
+			} else {
+				$meta_compare_string = '%s';
+			}
+
+			if ( ! empty( $where[$k] ) )
+				$where[$k] .= ' AND ';
+
+			$where[$k] = ' (' . $where[$k] . $wpdb->prepare( "CAST($alias.meta_value AS {$meta_type}) {$meta_compare} {$meta_compare_string})", $meta_value );
+		}
+
+		$where = array_filter( $where );
+
+		if ( empty( $where ) )
+			$where = '';
+		else
+			$where = ' AND (' . implode( "\n{$this->relation} ", $where ) . ' )';
+
+		$join = implode( "\n", $join );
+		if ( ! empty( $join ) )
+			$join = ' ' . $join;
+
+		return apply_filters_ref_array( 'get_meta_sql', array( compact( 'join', 'where' ), $this->queries, $type, $primary_table, $primary_id_column, $context ) );
 	}
 }
 

@@ -230,10 +230,17 @@ if(!class_exists('postindexermodel')) {
 
 		function rebuild_all_blogs() {
 
+			global $site_id;
+
 			$sql = "DELETE FROM {$this->network_rebuildqueue}";
 			$this->db->query( $sql );
 
-			$sql = "INSERT INTO {$this->network_rebuildqueue} SELECT blog_id, timestamp(now()), 0 FROM {$this->db->blogs}";
+			if(!empty($site_id) && $site_id != 0) {
+				$sql = $this->db->prepare( "INSERT INTO {$this->network_rebuildqueue} SELECT blog_id, timestamp(now()), 0 FROM {$this->db->blogs} where site_id = %d", $site_id );
+			} else {
+				$sql = "INSERT INTO {$this->network_rebuildqueue} SELECT blog_id, timestamp(now()), 0 FROM {$this->db->blogs}";
+			}
+
 			$this->db->query( $sql );
 
 		}
