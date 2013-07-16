@@ -34,10 +34,6 @@ if(!class_exists('postindexermodel')) {
 
 		var $global_post_types;
 
-		function postindexermodel() {
-			$this->__construct();
-		}
-
 		function __construct() {
 
 			global $wpdb;
@@ -63,6 +59,10 @@ if(!class_exists('postindexermodel')) {
 			// Set the global / default post types that we will be using
 			$this->global_post_types = get_site_option( 'postindexer_globalposttypes', array( 'post' ) );
 
+		}
+
+		function postindexermodel() {
+			$this->__construct();
 		}
 
 		function build_indexer_tables( $old_version ) {

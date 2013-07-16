@@ -11,10 +11,6 @@ if(!class_exists('postindexercron')) {
 		// The post indexer model
 		var $model;
 
-		function postindexercron() {
-			$this->__construct();
-		}
-
 		function __construct() {
 
 			$this->model = new postindexermodel();
@@ -31,6 +27,10 @@ if(!class_exists('postindexercron')) {
 			add_action( 'postindexer_postmetatidy_cron', array( &$this, 'process_tidy_postmeta') );
 			add_action( 'postindexer_agedpoststidy_cron', array( &$this, 'process_tidy_agedposts') );
 
+		}
+
+		function postindexercron() {
+			$this->__construct();
 		}
 
 		function process_rebuild_firstpass() {

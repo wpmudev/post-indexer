@@ -13,10 +13,6 @@ if(!class_exists('postindexeradmin')) {
 
 		var $global_post_types;
 
-		function postindexeradmin() {
-			$this->__construct();
-		}
-
 		function __construct() {
 
 			global $wpdb;
@@ -64,6 +60,10 @@ if(!class_exists('postindexeradmin')) {
 
 			// Add the jazzy statistics information
 			add_action('postindexer_statistics', array(&$this, 'handle_statistics_page'));
+		}
+
+		function postindexeradmin() {
+			$this->__construct();
 		}
 
 		//------------------------------------------------------------------------//
