@@ -425,7 +425,7 @@ if(!class_exists('postindexeradmin')) {
 		}
 
 		function add_admin_page() {
-			$hook = add_submenu_page( 'settings.php', __('Post Indexer', 'postindexer'), __('Post Indexer', 'postindexer'), 'manage_options', 'postindexer', array( &$this, 'handle_postindexer_page') );
+			$hook = add_submenu_page( 'settings.php', __('Post Indexer', 'postindexer'), __('Post Indexer', 'postindexer'), 'manage_network_options', 'postindexer', array( &$this, 'handle_postindexer_page') );
 		}
 
 		function add_header_postindexer_page() {
