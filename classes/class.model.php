@@ -67,6 +67,16 @@ if(!class_exists('postindexermodel')) {
 
 		function build_indexer_tables( $old_version ) {
 
+			$charset_collate = '';
+
+			if ( ! empty($this->db->charset) ) {
+				$charset_collate = "DEFAULT CHARACTER SET " . $this->db->charset;
+			}
+
+			if ( ! empty($this->db->collate) ) {
+				$charset_collate .= " COLLATE " . $this->db->collate;
+			}
+
 			switch( $old_version ) {
 
 				case 1:		// Add in log table
@@ -76,7 +86,7 @@ if(!class_exists('postindexermodel')) {
 							  `log_details` text,
 							  `log_datetime` datetime DEFAULT NULL,
 							  PRIMARY KEY (`id`)
-							) DEFAULT CHARSET=utf8;";
+							) $charset_collate;";
 
 							$this->db->query( $sql );
 
@@ -112,7 +122,7 @@ if(!class_exists('postindexermodel')) {
 							  KEY `type_status_date` (`post_type`,`post_status`,`post_date`,`ID`),
 							  KEY `post_parent` (`post_parent`),
 							  KEY `post_author` (`post_author`)
-							) DEFAULT CHARSET=utf8;";
+							) $charset_collate;";
 
 							$this->db->query( $sql );
 
@@ -121,7 +131,7 @@ if(!class_exists('postindexermodel')) {
 							  `rebuild_updatedate` timestamp NULL DEFAULT NULL,
 							  `rebuild_progress` bigint(20) unsigned DEFAULT NULL,
 							  PRIMARY KEY (`blog_id`)
-							) DEFAULT CHARSET=utf8;";
+							) $charset_collate;";
 
 							$this->db->query( $sql );
 
@@ -134,7 +144,7 @@ if(!class_exists('postindexermodel')) {
 							  PRIMARY KEY (`blog_id`,`meta_id`),
 							  KEY `post_id` (`post_id`),
 							  KEY `meta_key` (`meta_key`)
-							) DEFAULT CHARSET=utf8;";
+							) $charset_collate;";
 
 							$this->db->query( $sql );
 
@@ -146,7 +156,7 @@ if(!class_exists('postindexermodel')) {
 							  PRIMARY KEY (`term_id`),
 							  UNIQUE KEY `slug` (`slug`),
 							  KEY `name` (`name`)
-							) DEFAULT CHARSET=utf8;";
+							) $charset_collate;";
 
 							$this->db->query( $sql );
 
@@ -160,7 +170,7 @@ if(!class_exists('postindexermodel')) {
 							  PRIMARY KEY (`term_taxonomy_id`),
 							  UNIQUE KEY `term_id_taxonomy` (`term_id`,`taxonomy`),
 							  KEY `taxonomy` (`taxonomy`)
-							) DEFAULT CHARSET=utf8;";
+							) $charset_collate;";
 
 							$this->db->query( $sql );
 
@@ -171,7 +181,7 @@ if(!class_exists('postindexermodel')) {
 							  `term_order` int(11) NOT NULL DEFAULT '0',
 							  PRIMARY KEY (`blog_id`,`object_id`,`term_taxonomy_id`),
 							  KEY `term_taxonomy_id` (`term_taxonomy_id`)
-							) DEFAULT CHARSET=utf8;";
+							) $charset_collate;";
 
 							$this->db->query( $sql );
 
@@ -181,7 +191,7 @@ if(!class_exists('postindexermodel')) {
 							  `log_details` text,
 							  `log_datetime` datetime DEFAULT NULL,
 							  PRIMARY KEY (`id`)
-							) DEFAULT CHARSET=utf8;";
+							) $charset_collate;";
 
 							$this->db->query( $sql );
 
