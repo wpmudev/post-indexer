@@ -2768,7 +2768,7 @@ class Network_Query {
 			do_action_ref_array('loop_start', array(&$this));
 
 		$network_post = $this->next_post();
-		setup_postdata($network_post);
+		network_setup_postdata($network_post);
 	}
 
 	/**
