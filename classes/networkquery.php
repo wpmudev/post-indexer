@@ -2194,11 +2194,14 @@ class Network_Query {
 		if ( !empty($q['s']) ) {
 			// added slashes screw with quote grouping when done early, so done later
 			$q['s'] = stripslashes($q['s']);
+			$q['search_terms'] = array();
 			if ( !empty($q['sentence']) ) {
-				$q['search_terms'] = array($q['s']);
+				$q['search_terms'][] = $q['s'];
 			} else {
 				preg_match_all('/".*?("|$)|((?<=[\r\n\t ",+])|^)[^\r\n\t ",+]+/', $q['s'], $matches);
-				$q['search_terms'] = array_map('_search_terms_tidy', $matches[0]);
+				foreach ( $matches[0] as $match ) {
+					$q['search_terms'][] = trim( $match, "\"'\n\r " );
+				}
 			}
 			$n = !empty($q['exact']) ? '' : '%';
 			$searchand = '';
