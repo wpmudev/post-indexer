@@ -2225,7 +2225,7 @@ class Network_Query {
 		if ( !$this->is_singular ) {
 			$this->parse_tax_query( $q );
 
-			$clauses = $this->tax_query->get_sql( $this->network_posts, 'ID' );
+			$clauses = $this->tax_query->get_sql( $this->network_posts, 'ID', 'BLOG_ID' );
 
 			$join .= $clauses['join'];
 			$where .= $clauses['where'];
@@ -3619,11 +3619,10 @@ class Network_Tax_Query {
 	 *
 	 * @param string $primary_table
 	 * @param string $primary_id_column
+	 * @param string $blog_id_column
 	 * @return array
 	 */
-	public function get_sql( $primary_table, $primary_id_column ) {
-		global $wpdb;
-
+	public function get_sql( $primary_table, $primary_id_column, $blog_id_column = 'BLOG_ID' ) {
 		$join = '';
 		$where = array();
 		$i = 0;
@@ -3652,7 +3651,7 @@ class Network_Tax_Query {
 
 				$join .= " INNER JOIN $this->network_term_relationships";
 				$join .= $i ? " AS $alias" : '';
-				$join .= " ON ($primary_table.$primary_id_column = $alias.object_id)";
+				$join .= " ON ($primary_table.$primary_id_column = $alias.object_id AND $primary_table.$blog_id_column = $alias.blog_id)";
 
 				$where[] = "$alias.term_taxonomy_id $operator ($terms)";
 			} elseif ( 'NOT IN' == $operator ) {
@@ -3687,10 +3686,11 @@ class Network_Tax_Query {
 			$i++;
 		}
 
-		if ( !empty( $where ) )
+		if ( !empty( $where ) ) {
 			$where = ' AND ( ' . implode( " $this->relation ", $where ) . ' )';
-		else
+		} else {
 			$where = '';
+		}
 
 		return compact( 'join', 'where' );
 	}
