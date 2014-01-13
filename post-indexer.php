@@ -40,7 +40,10 @@ require_once 'classes/networkquery.php';
 // Include the rebuild cron class
 require_once 'classes/cron.postindexerrebuild.php';
 
+// Include the main class
+require_once 'classes/class.postindexeradmin.php';
+
+// Include WPMUDev Dashboar notifications class if need be
 if ( is_admin() ) {
 	require_once 'extra/wpmudev-dash-notification.php';
-	require_once 'classes/class.postindexeradmin.php';
 }
