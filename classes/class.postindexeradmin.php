@@ -13,12 +13,15 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 
 		var $global_post_types;
 
+		var $base_url;
+
 		function __construct() {
 
 			global $wpdb;
 
 			$this->db = $wpdb;
 			$this->model = new postindexermodel();
+			$this->base_url = plugins_url( '/', dirname( __FILE__ ) );
 
 			// Add settings menu action
 			add_action( 'network_admin_menu', array( $this, 'add_admin_page' ) );
@@ -65,18 +68,17 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 		//------------------------------------------------------------------------//
 
 		function add_header_sites_page() {
-			wp_enqueue_style('postindexernetworksettings', WP_PLUGIN_URL . '/post-indexer/css/sites.postindexer.css');
+			wp_enqueue_style( 'postindexernetworksettings', $this->base_url . 'css/sites.postindexer.css' );
 
-			wp_enqueue_script('thickbox');
+			wp_enqueue_script( 'thickbox' );
 
-			wp_register_script('pi-sites-post-indexer', WP_PLUGIN_URL . '/post-indexer/js/sites.postindexer.js', array('jquery', 'thickbox'));
-			wp_enqueue_script('pi-sites-post-indexer');
+			wp_register_script( 'pi-sites-post-indexer', $this->base_url . 'js/sites.postindexer.js', array( 'jquery', 'thickbox' ) );
+			wp_enqueue_script( 'pi-sites-post-indexer' );
 
-			wp_localize_script('pi-sites-post-indexer', 'postindexer', array( 	'siteedittitle'		=>	__('Post Indexer Settings','postindexer'),
-																				'sitesummarytitle'	=> __('Site Index Summary', 'postindexer')
-																												));
-			wp_enqueue_style('thickbox');
-
+			wp_localize_script( 'pi-sites-post-indexer', 'postindexer', array( 'siteedittitle' => __( 'Post Indexer Settings', 'postindexer' ),
+				'sitesummarytitle' => __( 'Site Index Summary', 'postindexer' )
+			) );
+			wp_enqueue_style( 'thickbox' );
 		}
 
 		function output_msg_sites_page( $msg ) {
@@ -251,9 +253,9 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 			// Enqueue the JS we need
 
 			// Enqueue the graphing library
-			wp_enqueue_script('flot_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.js', array('jquery'));
-			wp_enqueue_script('flot_pie_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.pie.js', array('jquery', 'flot_js'));
-			wp_enqueue_script('flot_stack_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.stack.js', array('jquery', 'flot_js'));
+			wp_enqueue_script('flot_js', $this->base_url . 'js/jquery.flot.js', array('jquery'));
+			wp_enqueue_script('flot_pie_js', $this->base_url . 'js/jquery.flot.pie.js', array('jquery', 'flot_js'));
+			wp_enqueue_script('flot_stack_js', $this->base_url . 'js/jquery.flot.stack.js', array('jquery', 'flot_js'));
 
 			wp_enqueue_style( 'colors' );
 			wp_enqueue_script( 'jquery' );
@@ -263,9 +265,9 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 			// Add in the chart data we need for the
 			add_action ('admin_head', array($this, 'dashboard_singlesitechartdata'));
 
-			//wp_enqueue_style('postindexernetworksettings', WP_PLUGIN_URL . '/post-indexer/css/options.postindexer.css');
+			//wp_enqueue_style('postindexernetworksettings', $this->base_url . 'css/options.postindexer.css');
 
-			wp_enqueue_script('postindexerscript', WP_PLUGIN_URL . '/post-indexer/js/sitestats.postindexer.js', array('jquery'));
+			wp_enqueue_script('postindexerscript', $this->base_url . 'js/sitestats.postindexer.js', array('jquery'));
 
 			_wp_admin_html_begin();
 			?>
@@ -434,23 +436,23 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 		function add_header_postindexer_page() {
 
 			// Enqueue the graphing library
-			wp_enqueue_script('flot_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.js', array('jquery'));
-			wp_enqueue_script('flot_pie_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.pie.js', array('jquery', 'flot_js'));
-			wp_enqueue_script('flot_stack_js', WP_PLUGIN_URL . '/post-indexer/js/jquery.flot.stack.js', array('jquery', 'flot_js'));
+			wp_enqueue_script('flot_js', $this->base_url . 'js/jquery.flot.js', array('jquery'));
+			wp_enqueue_script('flot_pie_js', $this->base_url . 'js/jquery.flot.pie.js', array('jquery', 'flot_js'));
+			wp_enqueue_script('flot_stack_js', $this->base_url . 'js/jquery.flot.stack.js', array('jquery', 'flot_js'));
 			// Add in header for IE users
 			add_action ('admin_head', array($this, 'dashboard_iehead'));
 			// Add in the chart data we need for the
 			add_action ('admin_head', array($this, 'dashboard_chartdata'));
 
-			wp_enqueue_style('postindexernetworksettings', WP_PLUGIN_URL . '/post-indexer/css/options.postindexer.css');
+			wp_enqueue_style('postindexernetworksettings', $this->base_url . 'css/options.postindexer.css');
 
-			wp_enqueue_script('postindexerscript', WP_PLUGIN_URL . '/post-indexer/js/options.postindexer.js', array('jquery'));
+			wp_enqueue_script('postindexerscript', $this->base_url . 'js/options.postindexer.js', array('jquery'));
 
 			$this->process_postindexer_page();
 		}
 
 		function dashboard_iehead() {
-			echo '<!--[if lt IE 8]><script language="javascript" type="text/javascript" src="' . WP_PLUGIN_URL . '/post-indexer/js/excanvas.min.js' . '"></script><![endif]-->';
+			echo '<!--[if lt IE 8]><script type="text/javascript" src="' . $this->base_url . 'js/excanvas.min.js' . '"></script><![endif]-->';
 		}
 
 		function process_postindexer_page() {
