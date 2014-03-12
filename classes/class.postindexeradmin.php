@@ -1215,7 +1215,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 						// Get the taxonomy for this local post
 						$taxonomy = $this->model->get_taxonomy_for_indexing( $local_id );
 						// Remove any existing ones that we are going to overwrite
-						$this->model->remove_term_relationships_for_post( $local_id );
+						$this->model->remove_term_relationships_for_post( $local_id, $this->db->blogid );
 						if(!empty($taxonomy)) {
 							foreach( $taxonomy as $taxkey => $tax ) {
 								$tax['blog_id'] = $this->db->blogid;

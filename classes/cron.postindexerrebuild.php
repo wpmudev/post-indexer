@@ -33,8 +33,9 @@ if(!class_exists('postindexercron')) {
 			$this->__construct();
 		}
 
-		function process_rebuild_firstpass() {
-
+		function process_rebuild_firstpass($DEBUG = false) {
+			//if ($DEBUG != true) return;
+			
 			$this->debug_message( __('Post Indexer First Pass','postindexer'), __("Running First Pass Cron", "postindexer") );
 
 			// First pass - loop through queue entries with a 0 in the rebuild_progress and set them up for the rebuild process
@@ -80,13 +81,13 @@ if(!class_exists('postindexercron')) {
 
 		}
 
-		function process_rebuild_secondpass() {
-
+		function process_rebuild_secondpass($DEBUG = false) {
+			//if ($DEBUG != true) return;
+			
 			$this->debug_message( __('Post Indexer Second Pass','postindexer'), __("Running Second Pass Cron", "postindexer") );
 
 			// Second pass - loop through queue entries with a on 0 in the rebuild_progress and start rebuilding
 			$queue = $this->model->get_rebuilding_blogs( PI_CRON_SITE_PROCESS_SECONDPASS );
-
 			if(!empty($queue)) {
 
 				$this->debug_message( __('Post Indexer Second Pass','postindexer'), sprintf( __("Processing %s queued items.", "postindexer"), count($queue) ) );
@@ -116,7 +117,6 @@ if(!class_exists('postindexercron')) {
 
 									// Add the post record to the network tables
 									$this->model->index_post( $post );
-
 									// Get the post meta for this local post
 									$meta = $this->model->get_postmeta_for_indexing( $local_id, $item->blog_id );
 									// Remove any existing ones that we are going to overwrite
@@ -133,7 +133,9 @@ if(!class_exists('postindexercron')) {
 									// Get the taxonomy for this local post
 									$taxonomy = $this->model->get_taxonomy_for_indexing( $local_id, $item->blog_id );
 									// Remove any existing ones that we are going to overwrite
-									$this->model->remove_term_relationships_for_post( $local_id );
+									//$this->debug_message( __FUNCTION__,  "calling remove_term_relationships_for_post: local_id[". $local_id ."]");
+									
+									$this->model->remove_term_relationships_for_post( $local_id, $item->blog_id);
 									if(!empty($taxonomy)) {
 										foreach( $taxonomy as $taxkey => $tax ) {
 											$tax['blog_id'] = $item->blog_id;
@@ -143,7 +145,6 @@ if(!class_exists('postindexercron')) {
 									}
 
 								}
-
 								// Update the rebuild queue with the next post to be processed
 								$previous_id = (int) ($local_id - 1);
 								if($previous_id > 0) {
@@ -184,7 +185,8 @@ if(!class_exists('postindexercron')) {
 
 		}
 
-		function process_tidy_tags() {
+		function process_tidy_tags($DEBUG = false) {
+			//if ($DEBUG != true) return;
 
 			// Hourly tidy up of tags and tag counts
 			$this->debug_message( __('Post Indexer Tag Tidy','postindexer'), __("Running Cron to tidy up Taxonomy", "postindexer") );
@@ -197,7 +199,8 @@ if(!class_exists('postindexercron')) {
 
 		}
 
-		function process_tidy_postmeta() {
+		function process_tidy_postmeta($DEBUG = false) {
+			//if ($DEBUG != true) return;
 
 			// Hourly tidy up of postmeta entries
 			$this->debug_message( __('Post Indexer Postmeta Tidy','postindexer'), __("Running Cron to tidy up Postmeta", "postindexer") );
@@ -208,7 +211,8 @@ if(!class_exists('postindexercron')) {
 
 		}
 
-		function process_tidy_agedposts() {
+		function process_tidy_agedposts($DEBUG = false) {
+			//if ($DEBUG != true) return;
 
 			// Hourly tidy up of old posts
 			$this->debug_message( __('Post Indexer Aged Posts Tidy','postindexer'), __("Running Cron to tidy up Old Posts", "postindexer") );
@@ -236,6 +240,7 @@ if(!class_exists('postindexercron')) {
 		}
 
 		function set_up_schedule() {
+
 			if ( !wp_next_scheduled( 'postindexer_firstpass_cron' ) ) {
 				wp_schedule_event( time(), $this->rebuildperiod, 'postindexer_firstpass_cron' );
 			}
@@ -255,6 +260,7 @@ if(!class_exists('postindexercron')) {
 			if ( !wp_next_scheduled( 'postindexer_agedpoststidy_cron' ) ) {
 				wp_schedule_event( time() + 40 * MINUTE_IN_SECONDS, 'hourly', 'postindexer_agedpoststidy_cron' );
 			}
+
 		}
 
 		function debug_message( $title, $message ) {

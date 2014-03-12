@@ -2284,7 +2284,7 @@ class Network_Query {
 		}
 
 		if ( !empty( $this->tax_query->queries ) || !empty( $this->meta_query->queries ) ) {
-			$groupby = "{$this->network_posts}.ID";
+			$groupby = "{$this->network_posts}.ID, {$this->network_posts}.BLOG_ID";
 		}
 
 		// Author/user stuff
