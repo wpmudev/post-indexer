@@ -3,8 +3,8 @@
 Plugin Name: Post Indexer
 Plugin URI: http://premium.wpmudev.org/project/post-indexer/
 Description: Indexes all posts across your network and brings them into one spot – a very powerful tool that you use as a base to display posts in different ways or to manage your network.
-Author: Barry (Incsub)
-Version: 3.0.5.3
+Author: WPMU DEV
+Version: 3.0.5.4
 Author URI: http://premium.wpmudev.org
 WDP ID: 30
 Network: true
@@ -42,8 +42,3 @@ require_once 'classes/cron.postindexerrebuild.php';
 
 // Include the main class
 require_once 'classes/class.postindexeradmin.php';
-
-// Include WPMUDev Dashboar notifications class if need be
-if ( is_admin() ) {
-	require_once 'extra/wpmudev-dash-notification.php';
-}

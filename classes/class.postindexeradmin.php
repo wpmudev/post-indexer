@@ -23,6 +23,12 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 			$this->model = new postindexermodel();
 			$this->base_url = plugins_url( '/', dirname( __FILE__ ) );
 
+
+			// Include WPMUDev Dashboar notifications class if need be
+			global $wpmudev_notices;
+			$wpmudev_notices[] = array( 'id'=> 30,'name'=> 'Post Indexer', 'screens' => array( 'settings_page_postindexer-network' ) );
+			include_once( dirname(__FILE__) . '/../extra/wpmudev-dash-notification.php' );
+
 			// Add settings menu action
 			add_action( 'network_admin_menu', array( $this, 'add_admin_page' ) );
 
@@ -1004,7 +1010,6 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 
 			?>
 			<div class="wrap nosubsub">
-
 				<h3 class="nav-tab-wrapper">
 					<?php if( has_action('postindexer_statistics') ) {
 						?>

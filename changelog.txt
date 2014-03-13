@@ -1,3 +1,8 @@
+3.0.5.4 2014/03/14
+------------------
+- Refined function network_get_permalink()
+- Added of WPMU DEV Dashboard 3.0 hooks 
+
 3.0.5.3 2014/03/13
 ------------------
 - Corrected issue with Network Qeury where GROUP BY was only considering post_ID. Included blog_ID.
