@@ -76,16 +76,17 @@ function network_the_excerpt_rss() {
 	echo apply_filters('network_the_excerpt_rss', $output);
 }
 
-function network_get_permalink( $blog_id = 0, $post_id = 0 ) {
-	if ($blog_id == 0) $blog_id = 1;
-	if ( (!empty($blog_id)) && (!empty($post_id)) ) {
-		switch_to_blog( $blog_id );
-		$permalink = get_permalink( $post_id );
+function network_get_permalink( $blog_id = 0, $id = 0 ) {
+
+	$post = &network_get_post( $blog_id, $id );
+
+	if(!empty($post)) {
+		switch_to_blog( $post->BLOG_ID );
+		$permalink = get_permalink( $post->ID );
 		restore_current_blog();
 
 		return $permalink;
 	}
-
 }
 
 function network_the_permalink_rss() {

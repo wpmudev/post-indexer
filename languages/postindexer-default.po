@@ -1,0 +1,482 @@
+# Translation of the WordPress plugin Post Indexer 3.0.5.5 by WPMU DEV.
+# Copyright (C) 2014 WPMU DEV
+# This file is distributed under the same license as the Post Indexer package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Post Indexer 3.0.5.5\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/post-indexer\n"
+"POT-Creation-Date: 2014-03-14 13:22-0500\n"
+"PO-Revision-Date: 2014-03-14 14:24-0500\n"
+"Last-Translator: Paul Menard <paul@codehooligans.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: English\n"
+
+#: classes/class.postindexeradmin.php:84
+#: classes/class.postindexeradmin.php:321
+msgid "Post Indexer Settings"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:85
+#: classes/class.postindexeradmin.php:280
+msgid "Site Index Summary"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:92
+msgid "Indexing disabled for the requested site."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:94
+msgid "Indexing could not be disabled for the requested site."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:96
+msgid "Indexing enabled for the requested site."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:98
+msgid "Indexing could not be enabled for the requested site."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:100
+msgid "Index scheduled for rebuilding for the requested site."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:102
+msgid "Index could not be scheduled for rebuilding for the requested site."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:104
+msgid "Your settings have been updated for the requested site."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:118
+#: classes/class.postindexeradmin.php:131
+#: classes/class.postindexeradmin.php:146
+#: classes/class.postindexeradmin.php:160
+msgid "You do not have permission to access this page."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:204
+msgid "Indexing"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:227
+msgid "Disable"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:230
+#: classes/class.postindexeradmin.php:248
+msgid "Edit"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:233
+msgid "Rebuild"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:236
+#: classes/class.postindexeradmin.php:1016
+msgid "Statistics"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:241
+msgid "Not Indexing"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:245
+msgid "Enable"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:354
+msgid "Cheatin&#8217; uh?"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:372
+msgid "Post Indexer Status"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:373
+msgid "You can enable or disable post indexing for this site using the setting below."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:378
+msgid "Indexing is"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:383
+#: classes/class.postindexeradmin.php:731
+msgid "Enabled"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:384
+#: classes/class.postindexeradmin.php:733
+msgid "Disabled"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:390
+msgid "Post Types to Index"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:391
+msgid "Select the post types that you want to be indexed for this site."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:396
+msgid "Currently Indexing"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:419
+msgid "Save all changes"
+msgstr ""
+
+#. #-#-#-#-#  post-indexer.pot (Post Indexer 3.0.5.5)  #-#-#-#-#
+#. Plugin Name of the plugin/theme
+#: classes/class.postindexeradmin.php:432
+msgid "Post Indexer"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:671
+msgid "Post Index Summary"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:675
+#: classes/class.postindexeradmin.php:762
+msgid "Indexed Post Types"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:699
+#: classes/class.postindexeradmin.php:748
+msgid "Most Indexed Sites"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:725
+msgid "You are running Post Indexer version "
+msgstr ""
+
+#: classes/class.postindexeradmin.php:728
+msgid "Cron logging is : "
+msgstr ""
+
+#: classes/class.postindexeradmin.php:776
+msgid "Rebuild Queue Status"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:780
+msgid "Current Queue Summary"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:789
+msgid "Sites in queue"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:793
+msgid "Sites currently being processed"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:797
+msgid "Sites awaiting processing"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:801
+msgid "Sites will complete processing on next pass"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:819
+msgid "Recently Indexed Posts"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:824
+#: classes/class.postindexeradmin.php:830
+msgid "Post Title"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:825
+#: classes/class.postindexeradmin.php:831
+msgid "Site"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:895
+msgid "Network Post Index Statistics"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:902
+#: classes/class.postindexeradmin.php:954
+#: classes/class.postindexeradmin.php:1045
+#: classes/class.postindexeradmin.php:1087
+msgid "You currently have items in your indexing queue."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:947
+msgid "Post Indexer Cron Log"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:971
+#, php-format
+msgid "Showing the most recent <strong>%s</strong> cron log entries."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1008
+msgid "Rebuilding of the Post Index has been scheduled."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1009
+msgid "Your settings have been updated."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1020
+msgid "Global Settings"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1021
+#: classes/class.postindexeradmin.php:1068
+msgid "Rebuild Index"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1025
+msgid "Cron Log"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1038
+msgid "Rebuild Network Post Index"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1064
+msgid "You can rebuild the Post Index by clicking on the <strong>Rebuild Index</strong> button below."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1065
+msgid "Note: This may take a considerable amount of time and could impact the performance of your server."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1080
+msgid "Post Indexer Global Settings"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1108
+msgid "The settings below allow you to set the defaults for all the sites in your network and processing that will take place across your entire index. "
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1109
+#, php-format
+msgid "You can override some of these settings on a site by site basis via the <a href=%s>Sites admin page</a>."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1115
+msgid "Default Post Types"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1119
+msgid "These are the default post types that will be indexed by the plugin. Place each post type on a seperate line."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1124
+msgid "Remove indexed posts older than"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1139
+msgid "Hour(s)"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1140
+msgid "Day(s)"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1141
+msgid "Week(s)"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1142
+msgid "Month(s)"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1143
+msgid "Year(s)"
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1147
+msgid "Posts older than this time span will be removed from the global index."
+msgstr ""
+
+#: classes/class.postindexeradmin.php:1157
+msgid "Update Settings"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:39
+#: classes/cron.postindexerrebuild.php:46
+#: classes/cron.postindexerrebuild.php:52
+#: classes/cron.postindexerrebuild.php:58
+#: classes/cron.postindexerrebuild.php:63
+#: classes/cron.postindexerrebuild.php:72
+#: classes/cron.postindexerrebuild.php:80
+msgid "Post Indexer First Pass"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:39
+msgid "Running First Pass Cron"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:46
+#: classes/cron.postindexerrebuild.php:93
+#, php-format
+msgid "Processing %s queued items."
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:52
+#: classes/cron.postindexerrebuild.php:99
+#, php-format
+msgid "Blog %s is indexable."
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:58
+#, php-format
+msgid "Maximum Post ID for blog %s is %s"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:63
+#, php-format
+msgid "No Posts found for blog %s - removing from queue."
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:80
+msgid "Finished First Pass Cron"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:87
+#: classes/cron.postindexerrebuild.php:93
+#: classes/cron.postindexerrebuild.php:99
+#: classes/cron.postindexerrebuild.php:107
+#: classes/cron.postindexerrebuild.php:155
+#: classes/cron.postindexerrebuild.php:163
+#: classes/cron.postindexerrebuild.php:173
+#: classes/cron.postindexerrebuild.php:184
+msgid "Post Indexer Second Pass"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:87
+msgid "Running Second Pass Cron"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:107
+#, php-format
+msgid "Processing %s posts for blog %s"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:155
+#: classes/cron.postindexerrebuild.php:163
+#, php-format
+msgid "No Posts left for blog %s - removing from queue."
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:173
+#, php-format
+msgid "Blog %s is NOT indexable - removing from queue."
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:184
+msgid "Finished Second Pass Cron"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:192
+#: classes/cron.postindexerrebuild.php:198
+msgid "Post Indexer Tag Tidy"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:192
+msgid "Running Cron to tidy up Taxonomy"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:198
+msgid "Finished Cron to tidy up Taxonomy"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:206
+#: classes/cron.postindexerrebuild.php:210
+msgid "Post Indexer Postmeta Tidy"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:206
+msgid "Running Cron to tidy up Postmeta"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:210
+msgid "Finished Cron to tidy up Postmeta"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:218
+#: classes/cron.postindexerrebuild.php:226
+msgid "Post Indexer Aged Posts Tidy"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:218
+msgid "Running Cron to tidy up Old Posts"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:226
+msgid "Finished Cron to tidy up Old Posts"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:236
+msgid "Every 10 Mins"
+msgstr ""
+
+#: classes/cron.postindexerrebuild.php:237
+msgid "Every 5 Mins"
+msgstr ""
+
+#: classes/networkquery.php:137
+#: classes/networkquery.php:158
+#: classes/networkquery.php:178
+#: classes/networkquery.php:202
+#: classes/networkquery.php:226
+#: classes/networkquery.php:250
+#: classes/networkquery.php:279
+#: classes/networkquery.php:299
+#: classes/networkquery.php:319
+#: classes/networkquery.php:339
+#: classes/networkquery.php:360
+#: classes/networkquery.php:380
+#: classes/networkquery.php:410
+#: classes/networkquery.php:439
+#: classes/networkquery.php:459
+#: classes/networkquery.php:486
+#: classes/networkquery.php:506
+#: classes/networkquery.php:526
+#: classes/networkquery.php:546
+#: classes/networkquery.php:566
+#: classes/networkquery.php:595
+#: classes/networkquery.php:622
+#: classes/networkquery.php:642
+#: classes/networkquery.php:662
+#: classes/networkquery.php:682
+#: classes/networkquery.php:702
+msgid "Conditional query tags do not work before the query is run. Before then, they always return false."
+msgstr ""
+
+#: classes/networkquery.php:1973
+msgid "\"caller_get_posts\" is deprecated. Use \"ignore_sticky_posts\" instead."
+msgstr ""
+
+#: includes/functions.php:371
+msgid "(more...)"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://premium.wpmudev.org/project/post-indexer/"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "Indexes all posts across your network and brings them into one spot – a very powerful tool that you use as a base to display posts in different ways or to manage your network."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "WPMU DEV"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://premium.wpmudev.org"
+msgstr ""
+

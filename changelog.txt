@@ -1,3 +1,8 @@
+3.0.5.5 2014/03/14
+------------------
+- More changes to network_get_permalink() function
+- Added initial language translations files
+
 3.0.5.4 2014/03/14
 ------------------
 - Refined function network_get_permalink()
