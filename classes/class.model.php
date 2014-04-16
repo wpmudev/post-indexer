@@ -745,6 +745,7 @@ if(!class_exists('postindexermodel')) {
 		}
 
 		function log_message( $title, $msg ) {
+			$title .= ' ('. getmypid() .')';
 			$this->db->insert( $this->network_log, array( 'log_title' => $title, 'log_details' => $msg, 'log_datetime' => current_time('mysql') ) );
 		}
 

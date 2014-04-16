@@ -1,6 +1,9 @@
 <?php
 
 if ( !class_exists( 'postindexeradmin' ) ) {
+
+	include_once( dirname(__FILE__) . '/class.processfilelocker.php' );
+
 	class postindexeradmin {
 
 		var $build = 1;
@@ -32,6 +35,8 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 			// Add settings menu action
 			add_action( 'network_admin_menu', array( $this, 'add_admin_page' ) );
 
+			add_action( 'network_admin_notices', array(&$this, 'admin_notices') );
+
 			add_action( 'load-settings_page_postindexer', array( $this, 'add_header_postindexer_page' ) );
 			//settings_page_postindexer
 			// Sites page integration
@@ -48,6 +53,8 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 			add_filter( 'network_sites_updated_message_not_enableindexing', array( $this, 'output_msg_sites_page' ) );
 			add_filter( 'network_sites_updated_message_rebuildindexing', array( $this, 'output_msg_sites_page' ) );
 			add_filter( 'network_sites_updated_message_not_rebuildindexing', array( $this, 'output_msg_sites_page' ) );
+
+			add_action( 'plugins_loaded', array(&$this, 'load_textdomain'));
 
 			// Index posts as we go along
 			add_action( 'save_post', array( $this, 'index_post' ), 99, 2 );
@@ -72,6 +79,15 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 		//------------------------------------------------------------------------//
 		//---Functions------------------------------------------------------------//
 		//------------------------------------------------------------------------//
+
+		function load_textdomain() {
+
+			if (preg_match('/mu\-plugin/', PLUGINDIR) > 0) {
+				load_muplugin_textdomain( 'postindexer', false, dirname(dirname( plugin_basename( __FILE__ ) )) . '/languages/' );
+			} else {
+				load_plugin_textdomain( 'postindexer', false, dirname(dirname( plugin_basename( __FILE__ ) )) . '/languages/' );
+			}
+		}
 
 		function add_header_sites_page() {
 			wp_enqueue_style( 'postindexernetworksettings', $this->base_url . 'css/sites.postindexer.css' );
@@ -108,6 +124,20 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 			return $msg;
 		}
 
+
+		function admin_notices() {
+			if ((is_network_admin()) && (isset($_GET['page'])) && ($_GET['page'] == 'postindexer')) {
+				
+				if ((defined('DISABLE_WP_CRON')) && (DISABLE_WP_CRON == true)) {
+					?>
+					<div id="post-indexer-error" class="error"><p><?php _e('Your site has <strong>DISABLE_WP_CRON</strong> defined as <strong>true</strong>. In most cases this means Post Indexer may not properly index your site(s) as it relies on the WordPress scheduler (WP_Cron). If you are running an alternate cron you can ignore this message.', 'postindexer'); ?></p></div>
+					<?php
+				}
+			}
+			
+		}
+		
+		
 		function process_sites_page() {
 
 			if( isset( $_GET['action'] ) ) {
@@ -598,13 +628,18 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 
 		function dashboard_chartdata() {
 
+			$post_type_results = array();
+			$post_type_max = 0;
+			$blog_counts_results = array();
+			$blog_counts_data = array();
+			$blog_count_max = 0;
+
+			$blog_type_ticks = array();
+
 			$post_type_counts = $this->model->get_summary_post_types();
 			$blog_counts = $this->model->get_summary_blog_post_type_totals();
 
 			if(!empty($post_type_counts)) {
-				$post_type_results = array();
-				$post_type_max = 0;
-
 				foreach($post_type_counts as $ptc) {
 					$post_type_results[] = array( 'label' => __($ptc->post_type,'postindexer'), 'data' => (int) $ptc->post_type_count );
 					if($ptc->post_type_count > $post_type_max) $post_type_max = $ptc->post_type_count;
@@ -615,11 +650,6 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 
 			// Sort out the post types for the blog
 			if(!empty($blog_counts)) {
-				$blog_counts_results = array();
-				$blog_counts_data = array();
-				$blog_count_max = 0;
-
-				$blog_type_ticks = array();
 
 				$n = 1;
 				foreach($blog_counts as $bc) {
@@ -667,7 +697,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 			$plugin = get_plugin_data( WP_PLUGIN_DIR . '/post-indexer/post-indexer.php' );
 
 			?>
-			<div id="dashboard_right_now" class="postbox ">
+			<div id="post-indexer-summary" class="postbox ">
 				<h3 class="hndle"><span><?php _e('Post Index Summary','postindexer'); ?></span></h3>
 				<div class="inside">
 
@@ -677,21 +707,25 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 							// Get the counts for the post types
 							$post_type_counts = $this->model->get_summary_post_types();
 						?>
-						<table>
-							<tbody>
-								<?php
-								$trclass = 'first';
-								foreach($post_type_counts as $ptc) {
-									?>
-									<tr class="<?php echo $trclass; ?>">
-										<td class="first b b-posts"><?php echo $ptc->post_type_count; ?></td>
-										<td class="t posts"><?php echo __($ptc->post_type, 'postindexer'); ?></td>
-									</tr>
-									<?php
-									$trclass = '';
-								}
+						<table id="post-indexer-indexed-post-types" class="widefat"> 
+						<tbody>
+							<?php
+							$trclass = 'alt';
+							foreach($post_type_counts as $ptc) {
 								?>
-							</tbody>
+								<tr class="<?php echo $trclass; ?>">
+									<td class="first b b-posts"><?php echo $ptc->post_type_count; ?></td>
+									<td class="t posts"><?php echo __($ptc->post_type, 'postindexer'); ?></td>
+								</tr>
+								<?php
+									if($trclass == '') {
+										$trclass = 'alt';
+									} else {
+										$trclass = '';
+									}
+							}
+							?>
+						</tbody>
 						</table>
 					</div>
 
@@ -701,18 +735,23 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 							// Get the counts for the blogs
 							$blog_counts = $this->model->get_summary_blog_totals();
 						?>
-						<table>
+						<table id="post-indexer-most-indexed-sites" class="widefat"> 
 							<tbody>
 								<?php
-								$trclass = 'first';
+								$trclass = 'alt';
 								foreach($blog_counts as $bc) {
-								?>
-								<tr class="<?php echo $trclass; ?>">
-									<td class="first b b-posts"><?php echo $bc->blog_count; ?></td>
-									<td class="t posts"><?php echo get_blog_option( $bc->BLOG_ID, 'blogname'); ?></td>
-								</tr>
-								<?php
-									$trclass = '';
+									?>
+									<tr class="<?php echo $trclass; ?>">
+										<td class="first b b-posts"><?php echo $bc->blog_count; ?></td>
+										<td class="t posts"><?php echo get_blog_option( $bc->BLOG_ID, 'blogname'); ?></td>
+									</tr>
+									<?php
+										if($trclass == '') {
+											$trclass = 'alt';
+										} else {
+											$trclass = '';
+										}
+										//$trclass = '';
 								}
 								?>
 							</tbody>
@@ -721,21 +760,190 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 
 					<br class="clear">
 
-					<p>
-						<?php echo __('You are running Post Indexer version ','postindexer') . "<strong>" . $plugin['Version'] . '</strong>'; ?>
-					</p>
-					<p>
-						<?php _e('Cron logging is : ', 'postindexer'); ?>
-						<strong>
+				</div>
+			</div>
+			<?php
+		}
+
+		function dashboard_meta() {
+			global $page, $action;
+
+			$plugin = get_plugin_data( WP_PLUGIN_DIR . '/post-indexer/post-indexer.php' );
+
+			?>
+			<div id="post-indexer-plugin-info" class="postbox ">
+				<h3 class="hndle"><span><?php _e('Post Indexer Processing Information','postindexer'); ?></span></h3>
+				<div class="inside">
+					<p><?php echo __('<strong>Post Indexer version</strong>:','postindexer') . " " . $plugin['Version'] ?></p>
+					<p><?php _e('<strong>Post Indexer debug logging</strong>: ', 'postindexer'); ?>
 							<?php if(defined('PI_CRON_DEBUG') && PI_CRON_DEBUG == true) {
 								_e('Enabled', 'postindexer');
+								if (defined('PI_CRON_DEBUG_KEEP_LAST')) {
+									echo ' ('. PI_CRON_DEBUG_KEEP_LAST .' '. __('entries', 'postindexer') . ')';
+								}
+								
 							} else {
 								_e('Disabled', 'postindexer');
 							}
+							?></p>
+							
+					<?php if (defined('WP_CRON_LOCK_TIMEOUT')) {
+						?><p><?php echo __('<strong>WP Cron lock timeout</strong>:', 'postindexer') .' '.WP_CRON_LOCK_TIMEOUT;  ?></p><?php
+					}
+					?>
+					
+					<?php
+					/*
+					if ((defined('DISABLE_WP_CRON')) && (DISABLE_WP_CRON == true)) {
+						?><p><?php _e('Your site has <strong>DISABLE_WP_CRON</strong> defined as <strong>true</strong>. In most cases this means Post Indexer may not properly index your site(s) as it relies on the WordPress scheduler (WP_Cron). If you are running an alternate cron you can ignore this message.', 'postindexer'); ?></p><?php
+					}
+					*/	
+					if ((isset($_GET['post_indexer_clear_cron'])) && (!empty($_GET['post_indexer_clear_cron']))) {
+						$post_indexer_cron_clear = esc_attr(trim($_GET['post_indexer_clear_cron']));
+						if (!empty($post_indexer_cron_clear)) {
+							// The value of the nonce is the value of the cron entry we want to clear.
+							if ((isset($_GET['post_indexer_clear_cron_nonce'])) && (wp_verify_nonce($_GET['post_indexer_clear_cron_nonce'], $post_indexer_cron_clear))) {
+								wp_clear_scheduled_hook($post_indexer_cron_clear);
+							}
+						}
+					}
+					
+					$date_format 		= get_option('date_format');
+					$date_format 		= str_replace('F', 'M', $date_format);
+					$time_format 		= get_option('time_format');
+					$date_time_format 	= $date_format .' '. $time_format;
+					//echo "date_time_format[". $date_time_format ."]<br />";
+					
+					?>
+					<p><?php _e('Post Indexer WP Cron entries', 'postindexer') ?> <span style="float:right;"><?php _e('Current time:', 'postindexer') ?> <?php echo date_i18n( $date_time_format, time() + get_option('gmt_offset') * 3600, false ); ?></span></p>
+					
+					<?php
+						
+						//$crons = _get_cron_array();
+						//echo "crons<pre>"; print_r($crons); echo "</pre>";
+						
+						//$doing_cron_transient = get_transient( 'doing_cron');
+						//echo "doing_cron_transient[". $doing_cron_transient ."]<br />";
+					?>
+					
+					
+					<table id="postindexer-crons" class="widefat">
+					<thead>
+					<tr>
+						<th class="col col-pi-action"><?php _e('Action', 'postindexer'); ?></th>
+						<th class="col col-pi-entry"><?php _e('Entry', 'postindexer'); ?></th>
+						<th class="col col-pi-next-run"><?php _e('Next run', 'postindexer'); ?></th>
+					</tr>
+					</thead>
+					<tbody>
+					<?php
+						$postindexer_crons = array(
+							'postindexer_firstpass_cron' => array(
+									'label' => __('1st pass', 'postindexer'), 
+									'limit' => '('. PI_CRON_SITE_PROCESS_FIRSTPASS .' '. __(' sites / batch', 'postindexer') . ')'), 
+							'postindexer_secondpass_cron' => array(
+									'label' => __('2st pass', 'postindexer'), 
+									'limit' => '('. PI_CRON_SITE_PROCESS_SECONDPASS .' '. __(' sites', 'postindexer') . ', '. 
+										PI_CRON_POST_PROCESS_SECONDPASS .' '. __('posts', 'postindexer') . ' ' . __('/ batch', 'postindexer'). ')'), 
+							'postindexer_tagtidy_cron' => array(
+									'label' => __('Post tags tidy', 'postindexer'),
+									'limit' => '('. PI_CRON_TIDY_DELETE_LIMIT .' '. __(' posts', 'postindexer') . ', '. 
+										PI_CRON_TIDY_COUNT_LIMIT .' '. __('tags', 'postindexer') . ' ' . __('/ batch', 'postindexer'). ')'), 
+							'postindexer_postmetatidy_cron' => array(
+									'label' => __('Post meta tidy', 'postindexer'),
+									'limit' => '('. PI_CRON_TIDY_DELETE_LIMIT .' '. __(' delete / batch', 'postindexer') . ')'), 
+							'postindexer_agedpoststidy_cron' => array(
+									'label' => __('Aged Posts tidy', 'postindexer'),
+									'limit' => '('. PI_CRON_TIDY_DELETE_LIMIT .' '. __(' delete / batch', 'postindexer') . ')'),  
+						);
+				
+						$log_folder = post_indexer_get_log_directory();
+						$class = 'alt';
+						
+						foreach($postindexer_crons as $postindexer_cron_key => $postindexer_cron_info) {
 							?>
-						</strong>
-					</p>
+							<tr class='<?php echo $class; ?>'>
+								<td style="text-align: center"><a title="<?php _e('Clear cron entry', 'postindexer') ?>" href="<?php 
+								
+									$clear_url = add_query_arg('post_indexer_clear_cron', $postindexer_cron_key); 
+									$clear_url = wp_nonce_url($clear_url, $postindexer_cron_key, 'post_indexer_clear_cron_nonce');
+									echo $clear_url;
+								
+								?>"><?php _e('clear', 'postindexer') ?></a></td>
+								<td><?php 
+									if ((isset($postindexer_cron_info['label'])) && (!empty($postindexer_cron_info['label']))) {
+										echo $postindexer_cron_info['label'];
+									} else {
+										echo $postindexer_cron;
+									}
 
+									if ((isset($postindexer_cron_info['limit'])) && (!empty($postindexer_cron_info['limit']))) {
+										echo ' '. $postindexer_cron_info['limit'];
+									}
+
+									?><br /><?php
+
+									$_locker = new ProcessFileLocker($log_folder, $postindexer_cron_key);
+									// If we have the lock it means the real process is not running otherwise it would have the lock.
+									$locker_out = '';
+
+									
+									$locker_info = $_locker->get_locker_info();
+									//echo "locked: locker_info<pre>"; print_r($locker_info); echo "</pre>";
+									if (isset($locker_info['pid'])) {
+										if (strlen($locker_out)) $locker_out .= ', ';
+										$locker_out .= "pid: ". $locker_info['pid'];
+									}
+									if (isset($locker_info['time_start'])) {
+										if (strlen($locker_out)) $locker_out .= ', ';
+										$locker_out .= "". date_i18n( $date_time_format, $locker_info['time_start'] + get_option('gmt_offset') * 3600, true );
+									}
+									if (isset($locker_info['blog_id'])) {
+										if (strlen($locker_out)) $locker_out .= ', ';
+										$locker_out .= "blog: ". $locker_info['blog_id'];
+									}
+									if (isset($locker_info['post_id'])) {
+										if (strlen($locker_out)) $locker_out .= ', ';
+										$locker_out .= "post: ". $locker_info['post_id'];
+									}
+									if (!empty($locker_out)) {
+										if ($_locker->is_locked() == false) {
+											 echo __('active:', 'postindexer') .' ';
+										} else {
+											echo __('previous:', 'postindexer') .' ';
+										}
+										echo '<em>'. $locker_out .'</em>';
+									}
+									unset($_locker);
+
+								?></td>
+								<td style="text-align: center"><?php
+									
+									$postindexer_cron_timestamp = wp_next_scheduled( $postindexer_cron_key );
+									
+									if ($postindexer_cron_timestamp !== false) {
+										echo date_i18n( $date_time_format, $postindexer_cron_timestamp + get_option('gmt_offset') * 3600, true );
+										echo '<br />('.$postindexer_cron_timestamp.')';
+
+										$schedule_interval = wp_get_schedule( $postindexer_cron_key );
+										if (!empty($schedule_interval)) {
+											echo ' '. $schedule_interval;
+										}
+									} else {
+										_e('No schedule', 'postindexer');
+									}
+								?></td>
+							</tr>
+							<?php
+							if($class == '') {
+								$class = 'alt';
+							} else {
+								$class = '';
+							}
+						}
+					?>
+					</tbody>
+					</table>
 				</div>
 			</div>
 			<?php
@@ -837,7 +1045,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 						if(!empty($recent)) {
 							?>
 							<?php
-							$class = '';
+							$class = 'alt';
 							foreach( $recent as $r ) {
 								switch_to_blog( $r->BLOG_ID );
 								?>
@@ -878,6 +1086,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 		function handle_statistics_page() {
 
 			add_action( 'postindexer_dashboard_left', array($this, 'dashboard_news') );
+			add_action( 'postindexer_dashboard_left', array($this, 'dashboard_meta') );
 			add_action( 'postindexer_dashboard_left', array($this, 'dashboard_blog_stats') );
 
 			if($this->model->blogs_for_rebuilding()) {
@@ -975,7 +1184,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 					<?php
 						$logs = $this->model->get_log_messages( PI_CRON_DEBUG_KEEP_LAST );
 						if(!empty($logs)) {
-							$class = '';
+							$class = 'alt';
 							foreach($logs as $log) {
 								?>
 								<tr class='logentry <?php echo $class;?>'>
