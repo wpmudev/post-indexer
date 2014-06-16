@@ -1,3 +1,7 @@
+3.0.5.7 2014/06/16
+------------------
+- Fixes posts array on subsequent calls to get_posts() after instantiation of Network_Query.
+
 3.0.5.6 2014/04/15
 ------------------
 - Added new Process Information widget to Network settings screen to show status of the 5 WP_Cron processes managed by Post Indexer.
