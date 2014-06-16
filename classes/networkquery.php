@@ -2670,12 +2670,11 @@ class Network_Query {
 
 			if ( $ids ) {
 				$this->set_found_posts( $q, $limits );
-
+                                $this->posts = array();
 				foreach($ids as $id) {
 					$this->posts[] = network_get_post( $id->BLOG_ID, $id->ID );
 				}
-
-				//$this->posts = array_map( 'get_post', $ids );
+                                
 			} else {
 				$this->found_posts = $this->max_num_pages = 0;
 				$this->posts = array();
