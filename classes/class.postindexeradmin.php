@@ -906,7 +906,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 										$locker_out .= "post: ". $locker_info['post_id'];
 									}
 									if (!empty($locker_out)) {
-										if ($_locker->is_locked() == false) {
+										if ($_locker->is_locked() === false) {
 											 echo __('active:', 'postindexer') .' ';
 										} else {
 											echo __('previous:', 'postindexer') .' ';

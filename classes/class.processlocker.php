@@ -1,56 +1,98 @@
 <?php
 /**
- * Description of processLocker
+ * Creates a process lock transients with information about the running process.
  *
- * @author saurabhshukla
+ * @author Saurabh Shukla <saurabh@incsub.com>
  */
 if(!class_exists('ProcessLocker')){
         
         class ProcessLocker {
                 
+                /**
+                 *
+                 * @var boolean If the current process has locked the transeint 
+                 */
                 private $locked;
                 
-                private $processkey;
-                
+                /**
+                 *
+                 * @var string The transient key for locking 
+                 */
                 private $lockkey;
                 
-                private $locekinfokey;
+                /**
+                 *
+                 * @var string The transient key for storing process information 
+                 */
+                private $infokey;
                 
+                /**
+                 * 
+                 * 
+                 * @param string $processkey The process key used to name unique transients
+                 */
                 function __construct($processkey){
-                        $this->processkey       = $processkey;
-                        $this->locekinfokey     = 'wp-post-indexer-lock-info'.$this->processkey;
-                        $this->lockkey          = 'wp-post-indexer-lock'.$this->processkey;
-                        $this->locked           = false;
-                        set_transient($this->lockkey, 1);
+                        
+                        $this->infokey     = 'wp-post-indexer-process-info'.$processkey;
+                        $this->lockkey          = 'wp-post-indexer-lock'.$processkey;
                         $this->is_locked();
                 }
                 
+                /**
+                 * 
+                 */
                 function __destruct() {
                         delete_transient($this->lockkey);
                 }
                 
+                /**
+                 * Checks if 
+                 * @return type
+                 */
                 private function is_locked(){
                         $locked = get_transient($this->lockkey);
                         
-                        $this->locked = (bool) $locked;
-                        return $this->locked;
+                        // the transient is not set, no process is working on this key
+                        if($locked === false){
+                                // set transient for locking by this process
+                                $lock = set_transient($this->lockkey, 1);
+                                return $lock;
+                        }
+                        
+                        // Otherwise transient exists, then a process has already locked this,
+                        // we can't lock it
+                        return false;
+                        
+                        
                         
                 }
                 
+                /**
+                 * 
+                 * @param type $locker_info
+                 * @return type
+                 */
                 function set_locker_info($locker_info = array()) {
-			if(!$this->locked){
+                        // if the lock transient is not set for this key, then it is not the same process
+			if(!$this->locked()){
                                 return;
                         }
+                        // only this process would be allowed to set the information 
 			if ($this->is_locked()) {
 				$locker_info['time_start'] = time();
 				$locker_info['pid'] = getmypid();
-				$set_lock = set_transient($this->locekinfokey, $locker_info);
+				$set_lock = set_transient($this->infokey, $locker_info);
                                 return $set_lock;
 			}
 		}
                 
+                /**
+                 * 
+                 * @param type $info_key
+                 * @return boolean
+                 */
                 function get_locker_info($info_key = false){
-                        $locker_info = get_transient($this->locekinfokey);
+                        $locker_info = get_transient($this->infokey);
                         
                         if(empty($locker_info)){
                                 return false;
