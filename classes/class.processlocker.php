@@ -8,11 +8,6 @@ if(!class_exists('ProcessLocker')){
         
         class ProcessLocker {
                 
-                /**
-                 *
-                 * @var boolean If the current process has locked the transeint 
-                 */
-                private $locked;
                 
                 /**
                  *
@@ -42,11 +37,13 @@ if(!class_exists('ProcessLocker')){
                  * 
                  */
                 function __destruct() {
+                        // remove lock on destruct, so it is freed up for the next process
                         delete_transient($this->lockkey);
                 }
                 
                 /**
-                 * Checks if 
+                 * Checks if this process has a lock. If not attempts to lock
+                 * 
                  * @return type
                  */
                 private function is_locked(){
