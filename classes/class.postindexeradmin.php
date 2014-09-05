@@ -1468,8 +1468,10 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 		}
 
 		function check_privacy() {
+                        
+                        $settings_updated = isset($_GET['settings-updated'])? $_GET['settings-updated']: false;
 
-			if ( $_GET['settings-updated'] == 'true' ) {
+			if ($settings_updated ===true  ) {
 				$blog_public = get_blog_status( $this->db->blogid, 'public');
 				if( $blog_public != '1') {
 					$this->remove_from_index( $this->db->blogid );
