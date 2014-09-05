@@ -2,7 +2,7 @@
 
 if ( !class_exists( 'postindexeradmin' ) ) {
 
-	include_once( dirname(__FILE__) . '/class.processfilelocker.php' );
+	include_once( dirname(__FILE__) . '/class.processlocker.php' );
 
 	class postindexeradmin {
 
@@ -857,7 +857,6 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 									'limit' => '('. PI_CRON_TIDY_DELETE_LIMIT .' '. __(' delete / batch', 'postindexer') . ')'),  
 						);
 				
-						$log_folder = post_indexer_get_log_directory();
 						$class = 'alt';
 						
 						foreach($postindexer_crons as $postindexer_cron_key => $postindexer_cron_info) {
@@ -883,7 +882,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 
 									?><br /><?php
 
-									$_locker = new ProcessFileLocker($log_folder, $postindexer_cron_key);
+									$_locker = new ProcessLocker($postindexer_cron_key);
 									// If we have the lock it means the real process is not running otherwise it would have the lock.
 									$locker_out = '';
 
