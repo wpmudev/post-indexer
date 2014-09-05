@@ -1,11 +1,4 @@
 <?php
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
  * Description of processLocker
  *
@@ -21,12 +14,19 @@ if(!class_exists('ProcessLocker')){
                 
                 private $lockkey;
                 
+                private $locekinfokey;
+                
                 function __construct($processkey){
                         $this->processkey       = $processkey;
-                        $this->lockkey          = 'wp-post-indexer-lock-'.$this->processkey;
+                        $this->locekinfokey     = 'wp-post-indexer-lock-info'.$this->processkey;
+                        $this->lockkey          = 'wp-post-indexer-lock'.$this->processkey;
                         $this->locked           = false;
-                        
+                        set_transient($this->lockkey, 1);
                         $this->is_locked();
+                }
+                
+                function __destruct() {
+                        delete_transient($this->lockkey);
                 }
                 
                 private function is_locked(){
@@ -44,13 +44,13 @@ if(!class_exists('ProcessLocker')){
 			if ($this->is_locked()) {
 				$locker_info['time_start'] = time();
 				$locker_info['pid'] = getmypid();
-				$set_lock = set_transient($this->lockkey, $locker_info);
+				$set_lock = set_transient($this->locekinfokey, $locker_info);
                                 return $set_lock;
 			}
 		}
                 
                 function get_locker_info($info_key = false){
-                        $locker_info = get_transient($this->lockkey);
+                        $locker_info = get_transient($this->locekinfokey);
                         
                         if(empty($locker_info)){
                                 return false;
