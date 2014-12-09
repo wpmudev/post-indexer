@@ -2091,6 +2091,11 @@ class Network_Query {
 		if ( $q['day'] )
 			$where .= " AND DAYOFMONTH($this->network_posts.post_date)='" . $q['day'] . "'";
 
+        if(isset($q['date_query'])){
+            $date_query = new WP_Date_Query($q['date_query'],'wp_network_posts.post_date');
+            $where.=$date_query->get_sql();
+        }
+
 		// If we've got a post_type AND its not "any" post_type.
 		if ( !empty($q['post_type']) && 'any' != $q['post_type'] ) {
 			foreach ( (array)$q['post_type'] as $_post_type ) {
@@ -2674,7 +2679,7 @@ class Network_Query {
 				foreach($ids as $id) {
 					$this->posts[] = network_get_post( $id->BLOG_ID, $id->ID );
 				}
-                                
+
 			} else {
 				$this->found_posts = $this->max_num_pages = 0;
 				$this->posts = array();
@@ -2683,6 +2688,7 @@ class Network_Query {
 			$this->posts = $wpdb->get_results( $this->request );
 			$this->set_found_posts( $q, $limits );
 		}
+
 
 		// Raw results filter. Prior to status checks.
 		if ( !$q['suppress_filters'] )
