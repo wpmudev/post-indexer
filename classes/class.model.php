@@ -449,19 +449,12 @@ if(!class_exists('postindexermodel')) {
 			if( in_array( $post['post_type'], $posttypes ) && in_array( $post['post_status'], array('publish', 'inherit') ) && $post['post_password'] == '' ) {
 				$indexing = 'yes';
 				//Do not insert aged posts.
-
-+				$agedposts = get_site_option( 'postindexer_agedposts', array( 'agedunit' => 1, 'agedperiod' => 'year' ) );
-
-+				$post_timestamp = strtotime($post['post_date']);
-
-+				$post_age_limit = strtotime('-'.$agedposts['agedunit'].' '.$agedposts['agedperiod']);
-
-+				if($post_timestamp < $post_age_limit){
-
-+				    $indexing = 'no';
-
-+				}
-
+				$agedposts = get_site_option( 'postindexer_agedposts', array( 'agedunit' => 1, 'agedperiod' => 'year' ) );
+				$post_timestamp = strtotime($post['post_date']);
+				$post_age_limit = strtotime('-'.$agedposts['agedunit'].' '.$agedposts['agedperiod']);
+				if($post_timestamp < $post_age_limit){
+					$indexing = 'no';
+				}
 		} else {
 				$indexing = 'no';
 			}
