@@ -2,7 +2,7 @@
 ------------------
 - Fixed PHP notice for undefined index in global get array. 
 - Added lockfile, transient based flag for locking, another transient for storing that info.
-- Added Improved indexation for aged posts. 
+- Added Improved indexation for aged posts
 
 3.0.5.7 2014/06/16
 ------------------
