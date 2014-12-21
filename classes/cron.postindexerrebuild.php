@@ -2,7 +2,7 @@
 
 if(!class_exists('postindexercron')) {
 
-	include_once( dirname(__FILE__) . '/class.processfilelocker.php' );
+	include_once( dirname(__FILE__) . '/class.processlocker.php' );
 
 	class postindexercron {
 
@@ -21,8 +21,6 @@ if(!class_exists('postindexercron')) {
 			$this->model = new postindexermodel();
 
 			$this->lockers = array();
-			$this->lock_folder = post_indexer_get_log_directory();
-			
 			
 			add_action( 'init', array(&$this, 'set_up_schedule') );
 			//add_action( 'autoblog_process_feeds', array(&$this, 'always_process_autoblog') );
@@ -49,7 +47,7 @@ if(!class_exists('postindexercron')) {
 			
 			$this->debug_message( __('Post Indexer First Pass','postindexer'), __("Initializing...", "postindexer") );
 
-			$this->lockers[$locker_key] = new ProcessFileLocker($this->lock_folder, $locker_key);
+			$this->lockers[$locker_key] = new ProcessLocker($locker_key);
 			//if ($_locker->is_locked() == false) {
 			//	unset($this->lockers[$locker_key]);
 			//	$this->debug_message( __('Post Indexer First Pass','postindexer'), __("locked by previous process", "postindexer") );
@@ -115,7 +113,7 @@ if(!class_exists('postindexercron')) {
 			
 			$this->debug_message( __('Post Indexer Second Pass','postindexer'), __("Initializing...", "postindexer") );
 
-			$this->lockers[$locker_key] = new ProcessFileLocker($this->lock_folder, $locker_key);
+			$this->lockers[$locker_key] = new ProcessLocker($locker_key);
 			//if ($_locker->is_locked() == false) {
 			//	unset($this->lockers[$locker_key]);
 			//	$this->debug_message( __('Post Indexer Second Pass','postindexer'), __("locked by previous process", "postindexer") );
@@ -259,7 +257,7 @@ if(!class_exists('postindexercron')) {
 			// Hourly tidy up of tags and tag counts
 			$this->debug_message( __('Post Indexer Tags Tidy','postindexer'), __("Initializing...", "postindexer") );
 			
-			$this->lockers[$locker_key] = new ProcessFileLocker($this->lock_folder, $locker_key);
+			$this->lockers[$locker_key] = new ProcessLocker($locker_key);
 			//if ($_locker->is_locked() == false) {
 			//	unset($this->lockers[$locker_key]);
 			//	$this->debug_message( __('Post Indexer Tags Tidy','postindexer'), __("locked by previous process", "postindexer") );
@@ -289,7 +287,7 @@ if(!class_exists('postindexercron')) {
 
 			$this->debug_message( __('Post Indexer Postmeta Tidy','postindexer'), __("Initializing...", "postindexer") );
 
-			$this->lockers[$locker_key] = new ProcessFileLocker($this->lock_folder, $locker_key);
+			$this->lockers[$locker_key] = new ProcessLocker($locker_key);
 			//if ($_locker->is_locked() == false) {
 			//	unset($this->lockers[$locker_key]);
 			//	$this->debug_message( __('Post Indexer Postmeta Tidy','postindexer'), __("locked by previous process", "postindexer") );
@@ -317,7 +315,7 @@ if(!class_exists('postindexercron')) {
 			$locker_key = 'postindexer_agedpoststidy_cron';
 			$locker_info 	= array();
 
-			$this->lockers[$locker_key] = new ProcessFileLocker($this->lock_folder, $locker_key);
+			$this->lockers[$locker_key] = new ProcessLocker($locker_key);
 			//if ($_locker->is_locked() == false) {
 			//	unset($this->lockers[$locker_key]);
 			//	$this->debug_message( __('Post Indexer Aged Posts Tidy','postindexer'), __("locked by previous process", "postindexer") );

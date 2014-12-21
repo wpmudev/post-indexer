@@ -2416,9 +2416,10 @@ class Network_Query {
 
 		if ( 'any' == $post_type ) {
 			$in_search_post_types = get_post_types( array('exclude_from_search' => false) );
-			if ( ! empty( $in_search_post_types ) )
-				$where .= $wpdb->prepare(" AND $this->network_posts.post_type IN ('" . join("', '", $in_search_post_types ) . "')");
-		} elseif ( !empty( $post_type ) && is_array( $post_type ) ) {
+			if ( ! empty( $in_search_post_types ) ){
+				$where .= " AND $this->network_posts.post_type IN ('" . join("', '", $in_search_post_types ) . "')";
+		        }
+                } elseif ( !empty( $post_type ) && is_array( $post_type ) ) {
 			$where .= " AND $this->network_posts.post_type IN ('" . join("', '", $post_type) . "')";
 		} elseif ( ! empty( $post_type ) ) {
 			$where .= " AND $this->network_posts.post_type = '$post_type'";
