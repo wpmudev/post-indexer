@@ -1,3 +1,9 @@
+3.0.5.8 2014/12/21
+------------------
+- Fixed PHP notice for undefined index in global get array. 
+- Added lockfile, transient based flag for locking, another transient for storing that info.
+- Added Improved indexation for aged posts. 
+
 3.0.5.7 2014/06/16
 ------------------
 - Fixes posts array on subsequent calls to get_posts() after instantiation of Network_Query.
@@ -21,3 +27,8 @@
 ------------------
 - Corrected issue with Network Qeury where GROUP BY was only considering post_ID. Included blog_ID.
 - Corrected issue in function 'remove_term_relationships_for_post' where it was inheriting global blog_id instead of using the blog_id of the post being processed. This effected the relationship between the post and tags and blog.
+
+
+
+
+
