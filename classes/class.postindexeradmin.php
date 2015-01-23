@@ -2,7 +2,7 @@
 
 if ( !class_exists( 'postindexeradmin' ) ) {
 
-	include_once( dirname(__FILE__) . '/class.processfilelocker.php' );
+	include_once( dirname(__FILE__) . '/class.processlocker.php' );
 
 	class postindexeradmin {
 
@@ -857,7 +857,6 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 									'limit' => '('. PI_CRON_TIDY_DELETE_LIMIT .' '. __(' delete / batch', 'postindexer') . ')'),  
 						);
 				
-						$log_folder = post_indexer_get_log_directory();
 						$class = 'alt';
 						
 						foreach($postindexer_crons as $postindexer_cron_key => $postindexer_cron_info) {
@@ -883,7 +882,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 
 									?><br /><?php
 
-									$_locker = new ProcessFileLocker($log_folder, $postindexer_cron_key);
+									$_locker = new ProcessLocker($postindexer_cron_key);
 									// If we have the lock it means the real process is not running otherwise it would have the lock.
 									$locker_out = '';
 
@@ -907,7 +906,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 										$locker_out .= "post: ". $locker_info['post_id'];
 									}
 									if (!empty($locker_out)) {
-										if ($_locker->is_locked() == false) {
+										if ($_locker->is_locked() === false) {
 											 echo __('active:', 'postindexer') .' ';
 										} else {
 											echo __('previous:', 'postindexer') .' ';
@@ -1468,8 +1467,10 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 		}
 
 		function check_privacy() {
+                        
+                        $settings_updated = isset($_GET['settings-updated'])? $_GET['settings-updated']: false;
 
-			if ( $_GET['settings-updated'] == 'true' ) {
+			if ($settings_updated ===true  ) {
 				$blog_public = get_blog_status( $this->db->blogid, 'public');
 				if( $blog_public != '1') {
 					$this->remove_from_index( $this->db->blogid );

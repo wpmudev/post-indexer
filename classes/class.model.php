@@ -448,7 +448,14 @@ if(!class_exists('postindexermodel')) {
 			// Checking for inherit here as well so we can get the media attachments for the post
 			if( in_array( $post['post_type'], $posttypes ) && in_array( $post['post_status'], array('publish', 'inherit') ) && $post['post_password'] == '' ) {
 				$indexing = 'yes';
-			} else {
+				//Do not insert aged posts.
+				$agedposts = get_site_option( 'postindexer_agedposts', array( 'agedunit' => 1, 'agedperiod' => 'year' ) );
+				$post_timestamp = strtotime($post['post_date']);
+				$post_age_limit = strtotime('-'.$agedposts['agedunit'].' '.$agedposts['agedperiod']);
+				if($post_timestamp < $post_age_limit){
+					$indexing = 'no';
+				}
+		} else {
 				$indexing = 'no';
 			}
 
