@@ -32,17 +32,19 @@ Domain Path: /languages
 // | MA 02110-1301 USA                                                    |
 // +----------------------------------------------------------------------+
 
-require_once 'includes/config.php';
-require_once 'includes/functions.php';
+define( 'POST_INDEXER_PLUGIN_DIR', plugin_dir_path( __FILE__) );
+
+require_once POST_INDEXER_PLUGIN_DIR . 'includes/config.php';
+require_once POST_INDEXER_PLUGIN_DIR . 'includes/functions.php';
 
 // Include the database model we will be using across classes
-require_once 'classes/class.model.php';
+require_once POST_INDEXER_PLUGIN_DIR . 'classes/class.model.php';
 
 // Include the network query class for other plugins to use
-require_once 'classes/networkquery.php';
+require_once POST_INDEXER_PLUGIN_DIR . 'classes/networkquery.php';
 
 // Include the rebuild cron class
-require_once 'classes/cron.postindexerrebuild.php';
+require_once POST_INDEXER_PLUGIN_DIR . 'classes/cron.postindexerrebuild.php';
 
 // Include the main class
-require_once 'classes/class.postindexeradmin.php';
+require_once POST_INDEXER_PLUGIN_DIR . 'classes/class.postindexeradmin.php';
