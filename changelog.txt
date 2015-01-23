@@ -1,6 +1,7 @@
 3.0.5.8 2014/12/21
 ------------------
-- Fixed PHP notice for undefined index in global get array. 
+- Fixed PHP notice for undefined index in global get array.
+- Fixed require_once relative paths causing undefined function errors
 - Added lockfile, transient based flag for locking, another transient for storing that info.
 - Added Improved indexation for aged posts
 
