@@ -4,7 +4,7 @@
  *
  * @author Saurabh Shukla <saurabh@incsub.com>
  */
-if(!class_exists('ProcessLocker')){
+if(!class_exists('ProcessLocker')) {
         
         class ProcessLocker {
                 
@@ -26,7 +26,7 @@ if(!class_exists('ProcessLocker')){
                  * 
                  * @param string $processkey The process key used to name unique transients
                  */
-                function __construct($processkey){
+                function __construct($processkey) {
                         
                         $this->infokey     = 'wp-post-indexer-process-info'.$processkey;
                         $this->lockkey          = 'wp-post-indexer-lock'.$processkey;
@@ -46,11 +46,11 @@ if(!class_exists('ProcessLocker')){
                  * 
                  * @return type
                  */
-                private function is_locked(){
+                private function is_locked() {
                         $locked = get_transient($this->lockkey);
                         
                         // the transient is not set, no process is working on this key
-                        if($locked === false){
+                        if($locked === false) {
                                 // set transient for locking by this process
                                 $lock = set_transient($this->lockkey, 1);
                                 return $lock;
@@ -61,40 +61,45 @@ if(!class_exists('ProcessLocker')){
                         return false;
                         
                         
-                        
-                }
+                        }
                 
                 /**
-                 * 
+	             *
                  * @param type $locker_info
                  * @return type
                  */
-                function set_locker_info($locker_info = array()) {
+                function set_locker_info( $locker_info = array() ) {
+
+
                         // if the lock transient is not set for this key, then it is not the same process
-			if(!$this->locked()){
+            if( ! $this->is_locked() ) {
+
                                 return;
-                        }
-                        // only this process would be allowed to set the information 
-			if ($this->is_locked()) {
-				$locker_info['time_start'] = time();
-				$locker_info['pid'] = getmypid();
-				$set_lock = set_transient($this->infokey, $locker_info);
+
+                        } else {
+
+                        // only this process would be allowed to set the information
+                $locker_info['time_start'] = time();
+                $locker_info['pid'] = getmypid();
+                $set_lock = set_transient($this->infokey, $locker_info);
                                 return $set_lock;
-			}
-		}
+
+            }
+                        
+        }
                 
                 /**
                  * 
                  * @param type $info_key
                  * @return boolean
                  */
-                function get_locker_info($info_key = false){
+                function get_locker_info($info_key = false) {
                         $locker_info = get_transient($this->infokey);
                         
-                        if(empty($locker_info)){
+                        if(empty($locker_info)) {
                                 return false;
                         }
-                        if($info_key!==false && isset($locker_info[$info_key])){
+                        if($info_key!==false && isset($locker_info[$info_key])) {
                                 return $locker_info[$info_key];
                         }
                         
