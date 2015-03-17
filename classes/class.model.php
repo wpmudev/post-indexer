@@ -641,7 +641,7 @@ if(!class_exists('postindexermodel')) {
 
 		function insert_or_get_taxonomy( $term_id, $taxonomy, $description, $parent ) {
 
-			$sql = $this->db->prepare( "SELECT term_taxonomy_id FROM {$this->network_term_taxonomy} WHERE term_id = %d AND taxonomy = %s AND description = %s AND parent = %d",$term_id, $taxonomy, $description, $parent );
+			$sql = $this->db->prepare( "SELECT term_taxonomy_id FROM {$this->network_term_taxonomy} WHERE term_id = %d AND taxonomy = %s AND parent = %d",$term_id, $taxonomy, $parent );
 			$term_taxonomy_id = $this->db->get_var( $sql );
 
 			if(empty($term_taxonomy_id)) {
