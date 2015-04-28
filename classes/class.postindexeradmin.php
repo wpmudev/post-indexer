@@ -149,9 +149,9 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 
 													if ( $blog_id != '0' ) {
 														$this->model->disable_indexing_for_blog( $blog_id );
-														wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'disableindexing' ), wp_get_referer() ) );
+														wp_safe_redirect( esc_url_raw ( add_query_arg( array( 'updated' => 'true', 'action' => 'disableindexing' ), wp_get_referer() ) ));
 													} else {
-														wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_disableindexing' ), wp_get_referer() ) );
+														wp_safe_redirect( esc_url_raw ( add_query_arg( array( 'updated' => 'true', 'action' => 'not_disableindexing' ), wp_get_referer() ) ));
 													}
 													break;
 
@@ -162,9 +162,9 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 
 													if ( $blog_id != '0' ) {
 														$this->model->enable_indexing_for_blog( $blog_id );
-														wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'enableindexing' ), wp_get_referer() ) );
+														wp_safe_redirect( esc_url_raw ( add_query_arg( array( 'updated' => 'true', 'action' => 'enableindexing' ), wp_get_referer() ) ));
 													} else {
-														wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_enableindexing' ), wp_get_referer() ) );
+														wp_safe_redirect( esc_url_raw ( add_query_arg( array( 'updated' => 'true', 'action' => 'not_enableindexing' ), wp_get_referer() ) ));
 													}
 													break;
 					case 'editsitepostindexer':
@@ -177,9 +177,9 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 
 													if ( $blog_id != '0' ) {
 														$this->model->rebuild_blog( $blog_id );
-														wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'rebuildindexing' ), wp_get_referer() ) );
+														wp_safe_redirect( esc_url_raw ( add_query_arg( array( 'updated' => 'true', 'action' => 'rebuildindexing' ), wp_get_referer() ) ));
 													} else {
-														wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'not_rebuildindexing' ), wp_get_referer() ) );
+														wp_safe_redirect( esc_url_raw ( add_query_arg( array( 'updated' => 'true', 'action' => 'not_rebuildindexing' ), wp_get_referer() ) ));
 													}
 													break;
 
@@ -221,7 +221,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 
 													$this->model->restore_current_blog();
 													//changed_siteindexing
-													wp_safe_redirect( add_query_arg( array( 'updated' => 'true', 'action' => 'changed_siteindexing' ), $_GET['comefrom'] ) );
+													wp_safe_redirect( esc_url_raw ( add_query_arg( array( 'updated' => 'true', 'action' => 'changed_siteindexing' ), $_GET['comefrom'] ) ));
 													break;
 
 				}
@@ -499,7 +499,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 
 				case 'postindexerrebuildallsites':	check_admin_referer('postindexer_rebuild_all_sites');
 													$this->model->rebuild_all_blogs();
-													wp_safe_redirect( add_query_arg( array( 'msg' => 1 ), wp_get_referer() ) );
+													wp_safe_redirect( esc_url_raw ( add_query_arg( array( 'msg' => 1 ), wp_get_referer() ) ));
 													exit;
 													break;
 
@@ -510,7 +510,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 
 													update_site_option( 'postindexer_agedposts', array( 'agedunit' => (int) $_POST['agedunit'], 'agedperiod' => $_POST['agedperiod'] ) );
 
-													wp_safe_redirect( add_query_arg( array( 'msg' => 2 ), wp_get_referer() ) );
+													wp_safe_redirect( esc_url_raw ( add_query_arg( array( 'msg' => 2 ), wp_get_referer() ) ));
 													exit;
 													break;
 
@@ -864,7 +864,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 							<tr class='<?php echo $class; ?>'>
 								<td style="text-align: center"><a title="<?php _e('Clear cron entry', 'postindexer') ?>" href="<?php 
 								
-									$clear_url = add_query_arg('post_indexer_clear_cron', $postindexer_cron_key); 
+									$clear_url = esc_url_raw(add_query_arg('post_indexer_clear_cron', $postindexer_cron_key)); 
 									$clear_url = wp_nonce_url($clear_url, $postindexer_cron_key, 'post_indexer_clear_cron_nonce');
 									echo $clear_url;
 								
@@ -1168,7 +1168,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 			<?php
 			if ( isset($_GET['msg']) ) {
 				echo '<div id="message" class="updated fade"><p>' . $messages[(int) $_GET['msg']] . '</p></div>';
-				$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+				$_SERVER['REQUEST_URI'] = esc_url_raw(remove_query_arg(array('message'), $_SERVER['REQUEST_URI']));
 			}
 			?>
 
@@ -1259,7 +1259,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 												<?php
 												if ( isset($_GET['msg']) ) {
 													echo '<div id="message" class="updated fade"><p>' . $messages[(int) $_GET['msg']] . '</p></div>';
-													$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+													$_SERVER['REQUEST_URI'] = esc_url_raw(remove_query_arg(array('message'), $_SERVER['REQUEST_URI']));
 												}
 												?>
 												<form action='' method='post'>
@@ -1301,7 +1301,7 @@ if ( !class_exists( 'postindexeradmin' ) ) {
 												<?php
 												if ( isset($_GET['msg']) ) {
 													echo '<div id="message" class="updated fade"><p>' . $messages[(int) $_GET['msg']] . '</p></div>';
-													$_SERVER['REQUEST_URI'] = remove_query_arg(array('message'), $_SERVER['REQUEST_URI']);
+													$_SERVER['REQUEST_URI'] = esc_url_raw(remove_query_arg(array('message'), $_SERVER['REQUEST_URI']));
 												}
 												?>
 
