@@ -1,3 +1,8 @@
+3.0.6.1 2015/04/28
+------------------
+- Fixed XSS issue
+- Fixed insert_or_get_taxonomy failing for duplicated terms. 
+
 3.0.6.0 2015/01/24
 ------------------
 - Fixed Fatal error: Call to undefined method ProcessLocker::is_locked()
