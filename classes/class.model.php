@@ -2,7 +2,7 @@
 
 // A class that contains the database functions used within the post indexer plugin
 
-if(!class_exists('postindexermodel')) {
+if ( ! class_exists( 'postindexermodel' ) ) {
 
 	class postindexermodel {
 
@@ -11,8 +11,16 @@ if(!class_exists('postindexermodel')) {
 		var $db;
 
 		// tables list
-		var $oldtables =  array( 'site_posts', 'term_counts', 'site_terms', 'site_term_relationships' );
-		var $tables = array( 'network_posts', 'network_rebuildqueue', 'network_postmeta', 'network_terms', 'network_term_taxonomy', 'network_term_relationships', 'network_log' );
+		var $oldtables = array( 'site_posts', 'term_counts', 'site_terms', 'site_term_relationships' );
+		var $tables = array(
+			'network_posts',
+			'network_rebuildqueue',
+			'network_postmeta',
+			'network_terms',
+			'network_term_taxonomy',
+			'network_term_relationships',
+			'network_log'
+		);
 
 		// old table variables
 		var $site_posts;
@@ -40,19 +48,20 @@ if(!class_exists('postindexermodel')) {
 
 			$this->db =& $wpdb;
 
-			foreach($this->tables as $table) {
+			foreach ( $this->tables as $table ) {
 				$this->$table = $this->db->base_prefix . $table;
 			}
 
-			if(defined('PI_LOAD_OLD_TABLES') && PI_LOAD_OLD_TABLES === true ) {
-				foreach($this->oldtables as $table) {
+			if ( defined( 'PI_LOAD_OLD_TABLES' ) && PI_LOAD_OLD_TABLES === true ) {
+				foreach ( $this->oldtables as $table ) {
 					$this->$table = $this->db->base_prefix . $table;
 				}
 			}
 
-			$version = get_site_option('postindexer_version', false);
-			if($version === false || $version < $this->build) {
-				update_site_option('postindexer_version', $this->build);
+			$version = get_site_option( 'postindexer_version', false );
+			
+			if ( $version === false || $version < $this->build ) {
+				update_site_option( 'postindexer_version', $this->build );
 				$this->build_indexer_tables( $version );
 			}
 
@@ -69,18 +78,18 @@ if(!class_exists('postindexermodel')) {
 
 			$charset_collate = '';
 
-			if ( ! empty($this->db->charset) ) {
+			if ( ! empty( $this->db->charset ) ) {
 				$charset_collate = "DEFAULT CHARACTER SET " . $this->db->charset;
 			}
 
-			if ( ! empty($this->db->collate) ) {
+			if ( ! empty( $this->db->collate ) ) {
 				$charset_collate .= " COLLATE " . $this->db->collate;
 			}
 
-			switch( $old_version ) {
+			switch ( $old_version ) {
 
-				case 1:		// Add in log table
-							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_log . "` (
+				case 1:        // Add in log table
+					$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_log . "` (
 							  `id` bigint(11) unsigned NOT NULL AUTO_INCREMENT,
 							  `log_title` varchar(250) DEFAULT NULL,
 							  `log_details` text,
@@ -88,11 +97,12 @@ if(!class_exists('postindexermodel')) {
 							  PRIMARY KEY (`id`)
 							) $charset_collate;";
 
-							$this->db->query( $sql );
+					$this->db->query( $sql );
 
-							break;
+					break;
 
-				default:	$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_posts . "` (
+				default:
+					$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_posts . "` (
 							  `BLOG_ID` bigint(20) unsigned NOT NULL DEFAULT '0',
 							  `ID` bigint(20) unsigned NOT NULL,
 							  `post_author` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -124,18 +134,18 @@ if(!class_exists('postindexermodel')) {
 							  KEY `post_author` (`post_author`)
 							) $charset_collate;";
 
-							$this->db->query( $sql );
+					$this->db->query( $sql );
 
-							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_rebuildqueue . "` (
+					$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_rebuildqueue . "` (
 							  `blog_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 							  `rebuild_updatedate` timestamp NULL DEFAULT NULL,
 							  `rebuild_progress` bigint(20) unsigned DEFAULT NULL,
 							  PRIMARY KEY (`blog_id`)
 							) $charset_collate;";
 
-							$this->db->query( $sql );
+					$this->db->query( $sql );
 
-							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_postmeta . "` (
+					$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_postmeta . "` (
 							  `blog_id` bigint(20) unsigned NOT NULL,
 							  `meta_id` bigint(20) unsigned NOT NULL,
 							  `post_id` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -146,21 +156,22 @@ if(!class_exists('postindexermodel')) {
 							  KEY `meta_key` (`meta_key`)
 							) $charset_collate;";
 
-							$this->db->query( $sql );
+					$this->db->query( $sql );
 
-							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_terms . "` (
+					$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_terms . "` (
 							  `term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 							  `name` varchar(200) NOT NULL DEFAULT '',
-							  `slug` varchar(200) NOT NULL DEFAULT '',
+							  `slug` varchar(191) NOT NULL DEFAULT '',
 							  `term_group` bigint(10) NOT NULL DEFAULT '0',
 							  PRIMARY KEY (`term_id`),
 							  UNIQUE KEY `slug` (`slug`),
 							  KEY `name` (`name`)
 							) $charset_collate;";
+					var_dump( $sql );
+					die;
+					$this->db->query( $sql );
 
-							$this->db->query( $sql );
-
-							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_term_taxonomy . "` (
+					$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_term_taxonomy . "` (
 							  `term_taxonomy_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 							  `term_id` bigint(20) unsigned NOT NULL DEFAULT '0',
 							  `taxonomy` varchar(32) NOT NULL DEFAULT '',
@@ -172,9 +183,9 @@ if(!class_exists('postindexermodel')) {
 							  KEY `taxonomy` (`taxonomy`)
 							) $charset_collate;";
 
-							$this->db->query( $sql );
+					$this->db->query( $sql );
 
-							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_term_relationships . "` (
+					$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_term_relationships . "` (
 							  `blog_id` bigint(20) unsigned NOT NULL,
 							  `object_id` bigint(20) unsigned NOT NULL DEFAULT '0',
 							  `term_taxonomy_id` bigint(20) unsigned NOT NULL DEFAULT '0',
@@ -183,9 +194,9 @@ if(!class_exists('postindexermodel')) {
 							  KEY `term_taxonomy_id` (`term_taxonomy_id`)
 							) $charset_collate;";
 
-							$this->db->query( $sql );
+					$this->db->query( $sql );
 
-							$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_log . "` (
+					$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_log . "` (
 							  `id` bigint(11) unsigned NOT NULL AUTO_INCREMENT,
 							  `log_title` varchar(250) DEFAULT NULL,
 							  `log_details` text,
@@ -193,16 +204,16 @@ if(!class_exists('postindexermodel')) {
 							  PRIMARY KEY (`id`)
 							) $charset_collate;";
 
-							$this->db->query( $sql );
+					$this->db->query( $sql );
 
-							break;
+					break;
 			}
 
 		}
 
 		function get_justqueued_blogs( $limit = 25 ) {
 
-			$sql = $this->db->prepare("SELECT * FROM {$this->network_rebuildqueue} WHERE rebuild_progress = 0 ORDER BY rebuild_updatedate ASC LIMIT %d", $limit );
+			$sql   = $this->db->prepare( "SELECT * FROM {$this->network_rebuildqueue} WHERE rebuild_progress = 0 ORDER BY rebuild_updatedate ASC LIMIT %d", $limit );
 			$queue = $this->db->get_results( $sql );
 
 			return $queue;
@@ -210,7 +221,7 @@ if(!class_exists('postindexermodel')) {
 
 		function get_rebuilding_blogs( $limit = 5 ) {
 
-			$sql = $this->db->prepare("SELECT * FROM {$this->network_rebuildqueue} WHERE rebuild_progress > 0 ORDER BY rebuild_updatedate ASC LIMIT %d", $limit );
+			$sql   = $this->db->prepare( "SELECT * FROM {$this->network_rebuildqueue} WHERE rebuild_progress > 0 ORDER BY rebuild_updatedate ASC LIMIT %d", $limit );
 			$queue = $this->db->get_results( $sql );
 
 			return $queue;
@@ -223,7 +234,7 @@ if(!class_exists('postindexermodel')) {
 
 			$var = $this->db->get_var( $sql );
 
-			if(empty($var) || $var == 0) {
+			if ( empty( $var ) || $var == 0 ) {
 				return false;
 			} else {
 				return true;
@@ -234,7 +245,11 @@ if(!class_exists('postindexermodel')) {
 
 		function rebuild_blog( $blog_id ) {
 
-			$this->insert_or_update( $this->network_rebuildqueue, array( 'blog_id' => $blog_id, 'rebuild_updatedate' => current_time('mysql'), 'rebuild_progress' => 0 ) );
+			$this->insert_or_update( $this->network_rebuildqueue, array(
+				'blog_id'            => $blog_id,
+				'rebuild_updatedate' => current_time( 'mysql' ),
+				'rebuild_progress'   => 0
+			) );
 
 		}
 
@@ -245,7 +260,7 @@ if(!class_exists('postindexermodel')) {
 			$sql = "DELETE FROM {$this->network_rebuildqueue}";
 			$this->db->query( $sql );
 
-			if(!empty($site_id) && $site_id != 0) {
+			if ( ! empty( $site_id ) && $site_id != 0 ) {
 				$sql = $this->db->prepare( "INSERT INTO {$this->network_rebuildqueue} SELECT blog_id, timestamp(now()), 0 FROM {$this->db->blogs} where site_id = %d", $site_id );
 			} else {
 				$sql = "INSERT INTO {$this->network_rebuildqueue} SELECT blog_id, timestamp(now()), 0 FROM {$this->db->blogs}";
@@ -261,7 +276,7 @@ if(!class_exists('postindexermodel')) {
 
 			$row = $this->db->get_row( $sql );
 
-			if( !empty($row) && $row->blog_id == $blog_id ) {
+			if ( ! empty( $row ) && $row->blog_id == $blog_id ) {
 				return true;
 			} else {
 				return false;
@@ -275,26 +290,26 @@ if(!class_exists('postindexermodel')) {
 
 			$indexing = get_option( 'postindexer_active', 'yes' );
 
-			if($indexing == 'yes') {
+			if ( $indexing == 'yes' ) {
 
-				$blog_archived = get_blog_status( $blog_id, 'archived');
-				$blog_mature = get_blog_status( $blog_id, 'mature');
-				$blog_spam = get_blog_status( $blog_id, 'spam');
-				$blog_deleted = get_blog_status( $blog_id, 'deleted');
+				$blog_archived = get_blog_status( $blog_id, 'archived' );
+				$blog_mature   = get_blog_status( $blog_id, 'mature' );
+				$blog_spam     = get_blog_status( $blog_id, 'spam' );
+				$blog_deleted  = get_blog_status( $blog_id, 'deleted' );
 
-				if($blog_archived == '1') {
+				if ( $blog_archived == '1' ) {
 					$indexing = 'no';
 				}
 
-				if($blog_mature == '1') {
+				if ( $blog_mature == '1' ) {
 					$indexing = 'no';
 				}
 
-				if($blog_spam == '1') {
+				if ( $blog_spam == '1' ) {
 					$indexing = 'no';
 				}
 
-				if($blog_deleted == '1') {
+				if ( $blog_deleted == '1' ) {
 					$indexing = 'no';
 				}
 
@@ -302,9 +317,9 @@ if(!class_exists('postindexermodel')) {
 
 			$this->restore_current_blog();
 
-			$indexing = apply_filters('postindexer_is_blog_indexable', $indexing, $blog_id);
+			$indexing = apply_filters( 'postindexer_is_blog_indexable', $indexing, $blog_id );
 
-			if($indexing == 'yes') {
+			if ( $indexing == 'yes' ) {
 				return true;
 			} else {
 				return false;
@@ -363,77 +378,100 @@ if(!class_exists('postindexermodel')) {
 
 		function update_blog_queue( $blog_id, $progress ) {
 
-			$this->db->update( $this->network_rebuildqueue, array('rebuild_progress' => $progress, 'rebuild_updatedate' => current_time('mysql')), array('blog_id' => $blog_id) );
+			$this->db->update( $this->network_rebuildqueue, array(
+				'rebuild_progress'   => $progress,
+				'rebuild_updatedate' => current_time( 'mysql' )
+			), array( 'blog_id' => $blog_id ) );
 
 		}
 
 		function get_highest_post_for_blog( $blog_id = false ) {
 
-			if($blog_id !== false) $this->switch_to_blog( $blog_id );
+			if ( $blog_id !== false ) {
+				$this->switch_to_blog( $blog_id );
+			}
 
 			$max_id = $this->db->get_var( "SELECT MAX(ID) as max_id FROM {$this->db->posts}" );
 
-			if($blog_id !== false) $this->restore_current_blog();
+			if ( $blog_id !== false ) {
+				$this->restore_current_blog();
+			}
 
 			return $max_id;
 		}
 
 		function get_posts_for_indexing( $blog_id = false, $startat = 0 ) {
 
-			if($blog_id !== false) $this->switch_to_blog( $blog_id );
+			if ( $blog_id !== false ) {
+				$this->switch_to_blog( $blog_id );
+			}
 
 			$posttypes = get_option( 'postindexer_posttypes', $this->global_post_types );
 			// Get the first five posts to work through that are published, in the selected post types and not password protected
-			$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID <= %d AND post_status IN ('publish','inherit') AND post_type IN ('" . implode("','", $posttypes) . "') AND post_password = '' ORDER BY ID DESC LIMIT %d", $startat, PI_CRON_POST_PROCESS_SECONDPASS );
+			$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID <= %d AND post_status IN ('publish','inherit') AND post_type IN ('" . implode( "','", $posttypes ) . "') AND post_password = '' ORDER BY ID DESC LIMIT %d", $startat, PI_CRON_POST_PROCESS_SECONDPASS );
 
 			$posts = $this->db->get_results( $sql, ARRAY_A );
 
-			if($blog_id !== false) $this->restore_current_blog();
+			if ( $blog_id !== false ) {
+				$this->restore_current_blog();
+			}
 
 			return $posts;
 		}
 
 		function get_post_for_indexing( $post_id, $blog_id = false, $restrict = true ) {
 
-			if($blog_id !== false) $this->switch_to_blog( $blog_id );
+			if ( $blog_id !== false ) {
+				$this->switch_to_blog( $blog_id );
+			}
 
-			if( $restrict === true ) {
+			if ( $restrict === true ) {
 				$posttypes = get_option( 'postindexer_posttypes', $this->global_post_types );
 				// Get the post to work with that is published, in the selected post types and not password protected
-				$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d AND post_status IN ('publish','inherit') AND post_type IN ('" . implode("','", $posttypes) . "') AND post_password = ''", $post_id );
+				$sql  = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d AND post_status IN ('publish','inherit') AND post_type IN ('" . implode( "','", $posttypes ) . "') AND post_password = ''", $post_id );
 				$post = $this->db->get_row( $sql, ARRAY_A );
 			} else {
-				$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d", $post_id );
+				$sql  = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d", $post_id );
 				$post = $this->db->get_row( $sql, ARRAY_A );
 			}
 
-			if($blog_id !== false) $this->restore_current_blog();
+			if ( $blog_id !== false ) {
+				$this->restore_current_blog();
+			}
 
 			return $post;
 		}
 
 		function get_postmeta_for_indexing( $post_id, $blog_id = false ) {
 
-			if($blog_id !== false) $this->switch_to_blog( $blog_id );
+			if ( $blog_id !== false ) {
+				$this->switch_to_blog( $blog_id );
+			}
 
 			// Get the post meta for this local post
 			$metasql = $this->db->prepare( "SELECT * FROM {$this->db->postmeta} WHERE post_id = %d AND meta_key NOT IN ('_edit_last', '_edit_lock', '_encloseme', '_pingme')", $post_id );
-			$meta = $this->db->get_results( $metasql, ARRAY_A );
+			$meta    = $this->db->get_results( $metasql, ARRAY_A );
 
-			if($blog_id !== false) $this->restore_current_blog();
+			if ( $blog_id !== false ) {
+				$this->restore_current_blog();
+			}
 
 			return $meta;
 
 		}
 
-		function get_taxonomy_for_indexing( $post_id, $blog_id = false  ) {
+		function get_taxonomy_for_indexing( $post_id, $blog_id = false ) {
 
-			if($blog_id !== false)  $this->switch_to_blog( $blog_id );
+			if ( $blog_id !== false ) {
+				$this->switch_to_blog( $blog_id );
+			}
 
 			$taxsql = $this->db->prepare( "SELECT t.term_id, t.name, t.slug, t.term_group, tt.term_taxonomy_id, tt.taxonomy, tt.description, tt.parent, tr.term_order FROM {$this->db->terms} AS t INNER JOIN {$this->db->term_taxonomy} AS tt ON t.term_id = tt.term_id INNER JOIN {$this->db->term_relationships} AS tr ON tt.term_taxonomy_id = tr.term_taxonomy_id WHERE tr.object_id = %d", $post_id );
-			$tax = $this->db->get_results( $taxsql, ARRAY_A );
+			$tax    = $this->db->get_results( $taxsql, ARRAY_A );
 
-			if($blog_id !== false)  $this->restore_current_blog();
+			if ( $blog_id !== false ) {
+				$this->restore_current_blog();
+			}
 
 			return $tax;
 
@@ -441,29 +479,40 @@ if(!class_exists('postindexermodel')) {
 
 		function is_post_indexable( $post, $blog_id = false ) {
 
-			if($blog_id !== false) $this->switch_to_blog( $blog_id );
+			if ( $blog_id !== false ) {
+				$this->switch_to_blog( $blog_id );
+			}
 
 			$posttypes = get_option( 'postindexer_posttypes', $this->global_post_types );
 
 			// Checking for inherit here as well so we can get the media attachments for the post
-			if( in_array( $post['post_type'], $posttypes ) && in_array( $post['post_status'], array('publish', 'inherit') ) && $post['post_password'] == '' ) {
+			if ( in_array( $post['post_type'], $posttypes ) && in_array( $post['post_status'], array(
+					'publish',
+					'inherit'
+				) ) && $post['post_password'] == ''
+			) {
 				$indexing = 'yes';
 				//Do not insert aged posts.
-				$agedposts = get_site_option( 'postindexer_agedposts', array( 'agedunit' => 1, 'agedperiod' => 'year' ) );
-				$post_timestamp = strtotime($post['post_date']);
-				$post_age_limit = strtotime('-'.$agedposts['agedunit'].' '.$agedposts['agedperiod']);
-				if($post_timestamp < $post_age_limit){
+				$agedposts      = get_site_option( 'postindexer_agedposts', array(
+					'agedunit'   => 1,
+					'agedperiod' => 'year'
+				) );
+				$post_timestamp = strtotime( $post['post_date'] );
+				$post_age_limit = strtotime( '-' . $agedposts['agedunit'] . ' ' . $agedposts['agedperiod'] );
+				if ( $post_timestamp < $post_age_limit ) {
 					$indexing = 'no';
 				}
-		} else {
+			} else {
 				$indexing = 'no';
 			}
 
-			if($blog_id !== false) $this->restore_current_blog();
+			if ( $blog_id !== false ) {
+				$this->restore_current_blog();
+			}
 
-			$indexing = apply_filters('postindexer_is_post_indexable', $indexing, $post, $blog_id);
+			$indexing = apply_filters( 'postindexer_is_post_indexable', $indexing, $post, $blog_id );
 
-			if($indexing == 'yes') {
+			if ( $indexing == 'yes' ) {
 				return true;
 			} else {
 				return false;
@@ -488,25 +537,35 @@ if(!class_exists('postindexermodel')) {
 
 		function index_tax( $tax ) {
 
-			if( $tax['parent'] == 0 ) {
+			if ( $tax['parent'] == 0 ) {
 				// There isn't a parent for this tax item so we can attempt to add it without more difficulty
 				//$this->log_message( __FUNCTION__, "tax<pre>". print_r($tax, true)."</pre>" );
-				
+
 				$term_id = $this->insert_or_get_term( $tax['name'], $tax['slug'], $tax['term_group'] );
-				if(!empty($term_id)) {
+				if ( ! empty( $term_id ) ) {
 					$term_taxonomy_id = $this->insert_or_get_taxonomy( $term_id, $tax['taxonomy'], $tax['description'], $tax['parent'] );
 
 					// Now that we have the taxonomy_id and the post_id we can insert the relationship
-					$this->insert_or_update( $this->network_term_relationships, array( 'blog_id' => $tax['blog_id'], 'object_id' => $tax['object_id'], 'term_taxonomy_id' => $term_taxonomy_id, 'term_order' => $tax['term_order'] ) );
+					$this->insert_or_update( $this->network_term_relationships, array(
+						'blog_id'          => $tax['blog_id'],
+						'object_id'        => $tax['object_id'],
+						'term_taxonomy_id' => $term_taxonomy_id,
+						'term_order'       => $tax['term_order']
+					) );
 				}
 			} else {
 				// There is a parent tax, we are not going to do anything more advanced with it, but this part of the if statement is here in case we want to later.
 				$term_id = $this->insert_or_get_term( $tax['name'], $tax['slug'], $tax['term_group'] );
-				if(!empty($term_id)) {
+				if ( ! empty( $term_id ) ) {
 					$term_taxonomy_id = $this->insert_or_get_taxonomy( $term_id, $tax['taxonomy'], $tax['description'], 0 );
 
 					// Now that we have the taxonomy_id and the post_id we can insert the relationship
-					$this->insert_or_update( $this->network_term_relationships, array( 'blog_id' => $tax['blog_id'], 'object_id' => $tax['object_id'], 'term_taxonomy_id' => $term_taxonomy_id, 'term_order' => $tax['term_order'] ) );
+					$this->insert_or_update( $this->network_term_relationships, array(
+						'blog_id'          => $tax['blog_id'],
+						'object_id'        => $tax['object_id'],
+						'term_taxonomy_id' => $term_taxonomy_id,
+						'term_order'       => $tax['term_order']
+					) );
 				}
 			}
 
@@ -514,7 +573,7 @@ if(!class_exists('postindexermodel')) {
 
 		function remove_postmeta_for_post( $post_id, $blog_id = false ) {
 
-			if( $blog_id == false ) {
+			if ( $blog_id == false ) {
 				$blog_id = $this->db->blogid;
 			}
 
@@ -524,12 +583,12 @@ if(!class_exists('postindexermodel')) {
 		}
 
 		function remove_term_relationships_for_post( $post_id, $blog_id = false ) {
-			
+
 			//$this->log_message( __FUNCTION__, "post_id[". $post_id."] blog_id[". $blog_id ."]" );
 			//global $current_blog;
 			//$this->log_message( __FUNCTION__, "current_blog<pre>". print_r($current_blog, true)."</pre> blog_id[". $blog_id ."]" );
-			
-			if( $blog_id == false ) {
+
+			if ( $blog_id == false ) {
 				$blog_id = $this->db->blogid;
 			}
 
@@ -542,7 +601,7 @@ if(!class_exists('postindexermodel')) {
 
 		function remove_indexed_entry_for_blog( $post_id, $blog_id = false ) {
 
-			if( $blog_id == false ) {
+			if ( $blog_id == false ) {
 				$blog_id = $this->db->blogid;
 			}
 
@@ -588,20 +647,20 @@ if(!class_exists('postindexermodel')) {
 
 		function remove_posts_older_than( $unit, $period ) {
 
-			switch($period) {
+			switch ( $period ) {
 				case 'hour':
 				case 'day':
 				case 'week':
 				case 'month':
 				case 'year':
-								$period = strtoupper($period);
+					$period = strtoupper( $period );
 			}
 
-			$sql = $this->db->prepare( "SELECT BLOG_ID, ID FROM {$this->network_posts} WHERE DATE_ADD(post_date, INTERVAL %d " . $period . ") < CURRENT_DATE() LIMIT %d", $unit, PI_CRON_TIDY_DELETE_LIMIT );
+			$sql   = $this->db->prepare( "SELECT BLOG_ID, ID FROM {$this->network_posts} WHERE DATE_ADD(post_date, INTERVAL %d " . $period . ") < CURRENT_DATE() LIMIT %d", $unit, PI_CRON_TIDY_DELETE_LIMIT );
 			$posts = $this->db->get_results( $sql );
 
-			if(!empty($posts)) {
-				foreach($posts as $post) {
+			if ( ! empty( $posts ) ) {
+				foreach ( $posts as $post ) {
 					$this->remove_indexed_entry_for_blog( $post->ID, $post->BLOG_ID );
 				}
 			}
@@ -615,8 +674,8 @@ if(!class_exists('postindexermodel')) {
 			$sql = $this->db->prepare( "SELECT tr.term_taxonomy_id, count(*) as calculatedcount, tt.count FROM {$this->network_term_relationships} AS tr INNER JOIN {$this->network_term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id GROUP BY tr.term_taxonomy_id HAVING calculatedcount != tt.count LIMIT %d", PI_CRON_TIDY_COUNT_LIMIT );
 
 			$counts = $this->db->get_results( $sql, ARRAY_A );
-			if(!empty( $counts )) {
-				foreach( $counts as $count ) {
+			if ( ! empty( $counts ) ) {
+				foreach ( $counts as $count ) {
 					$this->db->update( $this->network_term_taxonomy, array( 'count' => $count['calculatedcount'] ), array( 'term_taxonomy_id' => $count['term_taxonomy_id'] ) );
 				}
 			}
@@ -626,12 +685,16 @@ if(!class_exists('postindexermodel')) {
 		// Insert taxonomy term
 		function insert_or_get_term( $name, $slug, $term_group ) {
 
-			$sql = $this->db->prepare( "SELECT term_id FROM {$this->network_terms} WHERE name = %s AND slug = %s AND term_group = %d", $name, $slug, $term_group );
+			$sql     = $this->db->prepare( "SELECT term_id FROM {$this->network_terms} WHERE name = %s AND slug = %s AND term_group = %d", $name, $slug, $term_group );
 			$term_id = $this->db->get_var( $sql );
 
-			if( empty($term_id) ) {
+			if ( empty( $term_id ) ) {
 				// We need to insert the term as we don't have one
-				$this->db->insert( $this->network_terms, array( 'name' => $name, 'slug' => $slug, 'term_group' => $term_group ) );
+				$this->db->insert( $this->network_terms, array(
+					'name'       => $name,
+					'slug'       => $slug,
+					'term_group' => $term_group
+				) );
 				$term_id = $this->db->insert_id;
 			}
 
@@ -641,12 +704,18 @@ if(!class_exists('postindexermodel')) {
 
 		function insert_or_get_taxonomy( $term_id, $taxonomy, $description, $parent ) {
 
-			$sql = $this->db->prepare( "SELECT term_taxonomy_id FROM {$this->network_term_taxonomy} WHERE term_id = %d AND taxonomy = %s AND parent = %d",$term_id, $taxonomy, $parent );
+			$sql              = $this->db->prepare( "SELECT term_taxonomy_id FROM {$this->network_term_taxonomy} WHERE term_id = %d AND taxonomy = %s AND parent = %d", $term_id, $taxonomy, $parent );
 			$term_taxonomy_id = $this->db->get_var( $sql );
 
-			if(empty($term_taxonomy_id)) {
+			if ( empty( $term_taxonomy_id ) ) {
 				// We nned to insert the taxonomy as we don't have one
-				$this->db->insert( $this->network_term_taxonomy, array( 'term_id' => $term_id, 'taxonomy' => $taxonomy, 'description' => $description, 'parent' => $parent, 'count' => 1 ) );
+				$this->db->insert( $this->network_term_taxonomy, array(
+					'term_id'     => $term_id,
+					'taxonomy'    => $taxonomy,
+					'description' => $description,
+					'parent'      => $parent,
+					'count'       => 1
+				) );
 				$term_taxonomy_id = $this->db->insert_id;
 			}
 
@@ -657,31 +726,32 @@ if(!class_exists('postindexermodel')) {
 		// Insert on duplicate update function
 		function insert_or_update( $table, $query ) {
 
-				$fields = array_keys($query);
-				$formatted_fields = array();
-				foreach ( $fields as $field ) {
-					$form = '%s';
-					$formatted_fields[] = $form;
-				}
-				$sql = "INSERT INTO `$table` (`" . implode( '`,`', $fields ) . "`) VALUES ('" . implode( "','", $formatted_fields ) . "')";
-				$sql .= " ON DUPLICATE KEY UPDATE ";
+			$fields           = array_keys( $query );
+			$formatted_fields = array();
+			foreach ( $fields as $field ) {
+				$form               = '%s';
+				$formatted_fields[] = $form;
+			}
+			$sql = "INSERT INTO `$table` (`" . implode( '`,`', $fields ) . "`) VALUES ('" . implode( "','", $formatted_fields ) . "')";
+			$sql .= " ON DUPLICATE KEY UPDATE ";
 
-				$dup = array();
-				foreach($fields as $field) {
-					$dup[] = "`" . $field . "` = VALUES(`" . $field . "`)";
-				}
+			$dup = array();
+			foreach ( $fields as $field ) {
+				$dup[] = "`" . $field . "` = VALUES(`" . $field . "`)";
+			}
 
-				$sql .= implode(',', $dup);
-				
-				$sql_str = $this->db->prepare( $sql, $query );
-				//$this->log_message( __FUNCTION__, $sql_str );
-				return $this->db->query( $sql_str  );
+			$sql .= implode( ',', $dup );
+
+			$sql_str = $this->db->prepare( $sql, $query );
+
+			//$this->log_message( __FUNCTION__, $sql_str );
+			return $this->db->query( $sql_str );
 
 		}
 
 		function switch_to_blog( $blog_id ) {
 
-			if( $blog_id != $this->db->blogid ) {
+			if ( $blog_id != $this->db->blogid ) {
 				$this->on_blog_id = $blog_id;
 				switch_to_blog( $blog_id );
 			}
@@ -690,7 +760,7 @@ if(!class_exists('postindexermodel')) {
 
 		function restore_current_blog() {
 
-			if( $this->on_blog_id != 0 ) {
+			if ( $this->on_blog_id != 0 ) {
 				$this->on_blog_id = 0;
 				restore_current_blog();
 			}
@@ -699,7 +769,7 @@ if(!class_exists('postindexermodel')) {
 
 		function get_active_post_types( $blog_id = false ) {
 
-			if( $blog_id != false ) {
+			if ( $blog_id != false ) {
 				$this->switch_to_blog( $blog_id );
 			}
 
@@ -707,8 +777,8 @@ if(!class_exists('postindexermodel')) {
 
 			$post_types = $this->db->get_col( $sql );
 
-			if( $blog_id != false ) {
-				$this->restore_current_blog( );
+			if ( $blog_id != false ) {
+				$this->restore_current_blog();
 			}
 
 			return $post_types;
@@ -718,7 +788,7 @@ if(!class_exists('postindexermodel')) {
 		// Useful functions
 		function &get_post( $blog_id, $network_post_id ) {
 
-			$sql = $this->db->prepare( "SELECT * FROM {$this->network_posts} WHERE BLOG_ID = %d AND ID = %d", $blog_id, $network_post_id );
+			$sql     = $this->db->prepare( "SELECT * FROM {$this->network_posts} WHERE BLOG_ID = %d AND ID = %d", $blog_id, $network_post_id );
 			$results = $this->db->get_row( $sql, OBJECT );
 
 			return $results;
@@ -727,10 +797,10 @@ if(!class_exists('postindexermodel')) {
 
 		function term_is_tag( $term ) {
 
-			$sql = $this->db->prepare( "SELECT taxonomy FROM {$this->network_term_taxonomy} AS tt INNER JOIN {$this->network_terms} AS t ON tt.term_id = t.term_id WHERE t.slug = %s", $term );
+			$sql      = $this->db->prepare( "SELECT taxonomy FROM {$this->network_term_taxonomy} AS tt INNER JOIN {$this->network_terms} AS t ON tt.term_id = t.term_id WHERE t.slug = %s", $term );
 			$taxonomy = $this->db->get_var( $sql );
 
-			if(!empty($taxonomy) && $taxonomy == 'post_tag') {
+			if ( ! empty( $taxonomy ) && $taxonomy == 'post_tag' ) {
 				return true;
 			} else {
 				return false;
@@ -740,10 +810,10 @@ if(!class_exists('postindexermodel')) {
 
 		function term_is_category( $term ) {
 
-			$sql = $this->db->prepare( "SELECT taxonomy FROM {$this->network_term_taxonomy} AS tt INNER JOIN {$this->network_terms} AS t ON tt.term_id = t.term_id WHERE t.slug = %s", $term );
+			$sql      = $this->db->prepare( "SELECT taxonomy FROM {$this->network_term_taxonomy} AS tt INNER JOIN {$this->network_terms} AS t ON tt.term_id = t.term_id WHERE t.slug = %s", $term );
 			$taxonomy = $this->db->get_var( $sql );
 
-			if(!empty($taxonomy) && $taxonomy == 'category') {
+			if ( ! empty( $taxonomy ) && $taxonomy == 'category' ) {
 				return true;
 			} else {
 				return false;
@@ -752,14 +822,18 @@ if(!class_exists('postindexermodel')) {
 		}
 
 		function log_message( $title, $msg ) {
-			$title .= ' ('. getmypid() .')';
-			$this->db->insert( $this->network_log, array( 'log_title' => $title, 'log_details' => $msg, 'log_datetime' => current_time('mysql') ) );
+			$title .= ' (' . getmypid() . ')';
+			$this->db->insert( $this->network_log, array(
+				'log_title'    => $title,
+				'log_details'  => $msg,
+				'log_datetime' => current_time( 'mysql' )
+			) );
 		}
 
 		function clear_messages( $keep = 25 ) {
 
 			$ids = $this->db->get_col( $this->db->prepare( "SELECT id FROM {$this->network_log} ORDER BY id DESC LIMIT %d", $keep ) );
-			$ids = "'" . implode("','", $ids) . "'";
+			$ids = "'" . implode( "','", $ids ) . "'";
 
 			$sql = $this->db->prepare( "DELETE FROM {$this->network_log} WHERE id NOT IN (" . $ids . ") LIMIT %d", PI_CRON_TIDY_DELETE_LIMIT );
 
@@ -791,7 +865,7 @@ if(!class_exists('postindexermodel')) {
 		function get_summary_blog_post_type_totals( $ids = array() ) {
 
 			$ids = $this->db->get_col( "SELECT BLOG_ID, count(*) AS blog_count FROM {$this->network_posts} GROUP BY BLOG_ID ORDER BY blog_count DESC LIMIT 15" );
-			$ids = "'" . implode("','", $ids) . "'";
+			$ids = "'" . implode( "','", $ids ) . "'";
 
 			$sql = "SELECT BLOG_ID, post_type, count(*) AS blog_type_count FROM {$this->network_posts} WHERE BLOG_ID IN (" . $ids . ") GROUP BY BLOG_ID, post_type ORDER BY blog_id, post_type DESC LIMIT 15";
 
