@@ -59,7 +59,7 @@ if ( ! class_exists( 'postindexermodel' ) ) {
 			}
 
 			$version = get_site_option( 'postindexer_version', false );
-			
+
 			if ( $version === false || $version < $this->build ) {
 				update_site_option( 'postindexer_version', $this->build );
 				$this->build_indexer_tables( $version );
@@ -167,8 +167,7 @@ if ( ! class_exists( 'postindexermodel' ) ) {
 							  UNIQUE KEY `slug` (`slug`),
 							  KEY `name` (`name`)
 							) $charset_collate;";
-					var_dump( $sql );
-					die;
+			
 					$this->db->query( $sql );
 
 					$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_term_taxonomy . "` (
