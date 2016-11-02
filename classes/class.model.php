@@ -167,7 +167,7 @@ if ( ! class_exists( 'postindexermodel' ) ) {
 							  UNIQUE KEY `slug` (`slug`),
 							  KEY `name` (`name`)
 							) $charset_collate;";
-			
+
 					$this->db->query( $sql );
 
 					$sql = "CREATE TABLE IF NOT EXISTS `" . $this->network_term_taxonomy . "` (
@@ -407,7 +407,7 @@ if ( ! class_exists( 'postindexermodel' ) ) {
 
 			$posttypes = get_option( 'postindexer_posttypes', $this->global_post_types );
 			// Get the first five posts to work through that are published, in the selected post types and not password protected
-			$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID <= %d AND post_status IN ('publish','inherit') AND post_type IN ('" . implode( "','", $posttypes ) . "') AND post_password = '' ORDER BY ID DESC LIMIT %d", $startat, PI_CRON_POST_PROCESS_SECONDPASS );
+			$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID <= %d AND post_status IN ('publish','inherit') AND post_type IN ('%s') AND post_password = '' ORDER BY ID DESC LIMIT %d", $startat, implode( "','", $posttypes ), PI_CRON_POST_PROCESS_SECONDPASS );
 
 			$posts = $this->db->get_results( $sql, ARRAY_A );
 
@@ -427,7 +427,8 @@ if ( ! class_exists( 'postindexermodel' ) ) {
 			if ( $restrict === true ) {
 				$posttypes = get_option( 'postindexer_posttypes', $this->global_post_types );
 				// Get the post to work with that is published, in the selected post types and not password protected
-				$sql  = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d AND post_status IN ('publish','inherit') AND post_type IN ('" . implode( "','", $posttypes ) . "') AND post_password = ''", $post_id );
+				$sql  = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d AND post_status IN ('publish','inherit') AND post_type IN ('%s') AND post_password = ''", $post_id, implode( "','", $posttypes ) );
+				$posts = $this->db->get_results( $sql, ARRAY_A );
 				$post = $this->db->get_row( $sql, ARRAY_A );
 			} else {
 				$sql  = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d", $post_id );
@@ -655,7 +656,7 @@ if ( ! class_exists( 'postindexermodel' ) ) {
 					$period = strtoupper( $period );
 			}
 
-			$sql   = $this->db->prepare( "SELECT BLOG_ID, ID FROM {$this->network_posts} WHERE DATE_ADD(post_date, INTERVAL %d " . $period . ") < CURRENT_DATE() LIMIT %d", $unit, PI_CRON_TIDY_DELETE_LIMIT );
+			$sql   = $this->db->prepare( "SELECT BLOG_ID, ID FROM {$this->network_posts} WHERE DATE_ADD(post_date, INTERVAL %d %s) < CURRENT_DATE() LIMIT %d", $unit, $period, PI_CRON_TIDY_DELETE_LIMIT );
 			$posts = $this->db->get_results( $sql );
 
 			if ( ! empty( $posts ) ) {
@@ -663,8 +664,6 @@ if ( ! class_exists( 'postindexermodel' ) ) {
 					$this->remove_indexed_entry_for_blog( $post->ID, $post->BLOG_ID );
 				}
 			}
-
-
 		}
 
 		function recalculate_tax_counts() {
