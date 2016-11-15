@@ -1,10 +1,7 @@
-3.0.6.3
-------------------
-- Fixed: SQL injection possibility when cleaning old post from WP Cron
-
 3.0.6.2
 ------------------
 - Fixed table _network_terms doesn't create
+- Fixed: SQL injection possibility when cleaning old post from WP Cron
 
 3.0.6.1 2015/04/28
 ------------------
