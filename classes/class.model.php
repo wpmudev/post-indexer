@@ -656,7 +656,7 @@ if ( ! class_exists( 'postindexermodel' ) ) {
 					$period = strtoupper( $period );
 			}
 
-			$sql   = $this->db->prepare( "SELECT BLOG_ID, ID FROM {$this->network_posts} WHERE DATE_ADD(post_date, INTERVAL %d %s) < CURRENT_DATE() LIMIT %d", $unit, $period, PI_CRON_TIDY_DELETE_LIMIT );
+			$sql   = $this->db->prepare( "SELECT BLOG_ID, ID FROM {$this->network_posts} WHERE DATE_ADD(post_date, INTERVAL %s) < CURRENT_DATE() LIMIT %d", $unit, $period, PI_CRON_TIDY_DELETE_LIMIT );
 			$posts = $this->db->get_results( $sql );
 
 			if ( ! empty( $posts ) ) {
