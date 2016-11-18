@@ -427,9 +427,9 @@ if ( ! class_exists( 'postindexermodel' ) ) {
 			if ( $restrict === true ) {
 				$posttypes = get_option( 'postindexer_posttypes', $this->global_post_types );
 				// Get the post to work with that is published, in the selected post types and not password protected
-				$sql  = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d AND post_status IN ('publish','inherit') AND post_type IN ('%s') AND post_password = ''", $post_id, implode( "','", $posttypes ) );
+				$sql   = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d AND post_status IN ('publish','inherit') AND post_type IN ('%s') AND post_password = ''", $post_id, implode( "','", $posttypes ) );
 				$posts = $this->db->get_results( $sql, ARRAY_A );
-				$post = $this->db->get_row( $sql, ARRAY_A );
+				$post  = $this->db->get_row( $sql, ARRAY_A );
 			} else {
 				$sql  = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d", $post_id );
 				$post = $this->db->get_row( $sql, ARRAY_A );
@@ -654,9 +654,16 @@ if ( ! class_exists( 'postindexermodel' ) ) {
 				case 'month':
 				case 'year':
 					$period = strtoupper( $period );
+					break;
+				default:
+					$period = null;
 			}
 
-			$sql   = $this->db->prepare( "SELECT BLOG_ID, ID FROM {$this->network_posts} WHERE DATE_ADD(post_date, INTERVAL %s) < CURRENT_DATE() LIMIT %d", $unit, $period, PI_CRON_TIDY_DELETE_LIMIT );
+			if ( $period == null ) {
+				return false;
+			}
+
+			$sql = $this->db->prepare( "SELECT BLOG_ID, ID FROM {$this->network_posts} WHERE DATE_ADD(post_date, INTERVAL %d {$period}) < CURRENT_DATE() LIMIT %d", $unit, PI_CRON_TIDY_DELETE_LIMIT );
 			$posts = $this->db->get_results( $sql );
 
 			if ( ! empty( $posts ) ) {
