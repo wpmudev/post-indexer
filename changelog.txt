@@ -1,6 +1,6 @@
 3.0.6.3
 ------------------
-- Fixed SQL error.
+- Fixed SQL error when cleaning old posts
 
 3.0.6.2
 ------------------
