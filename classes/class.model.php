@@ -407,10 +407,13 @@ if ( ! class_exists( 'postindexermodel' ) ) {
 
 			$posttypes = get_option( 'postindexer_posttypes', $this->global_post_types );
 			// Get the first five posts to work through that are published, in the selected post types and not password protected
-			$sql = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID <= %d AND post_status IN ('publish','inherit') AND post_type IN ('%s') AND post_password = '' ORDER BY ID DESC LIMIT %d", $startat, implode( "','", $posttypes ), PI_CRON_POST_PROCESS_SECONDPASS );
+			$sql    = "SELECT * FROM {$this->db->posts} WHERE ID <= %d AND post_status IN ('publish','inherit') AND post_type IN (" . implode( ', ', array_fill( 0, count( $posttypes ), '%s' ) ) . ") AND post_password = '' ORDER BY ID DESC LIMIT %d";
+			$params = array( $startat );
+			$params = array_merge( $params, $posttypes );
+			$params = array_merge( $params, array( PI_CRON_POST_PROCESS_SECONDPASS ) );
+			$sql    = call_user_func_array( array( $this->db, 'prepare' ), array_merge( array( $sql ), $params ) );
 
 			$posts = $this->db->get_results( $sql, ARRAY_A );
-
 			if ( $blog_id !== false ) {
 				$this->restore_current_blog();
 			}
@@ -426,10 +429,15 @@ if ( ! class_exists( 'postindexermodel' ) ) {
 
 			if ( $restrict === true ) {
 				$posttypes = get_option( 'postindexer_posttypes', $this->global_post_types );
+				$posttypes = $this->build_in_params( $posttypes );
 				// Get the post to work with that is published, in the selected post types and not password protected
-				$sql   = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d AND post_status IN ('publish','inherit') AND post_type IN ('%s') AND post_password = ''", $post_id, implode( "','", $posttypes ) );
-				$posts = $this->db->get_results( $sql, ARRAY_A );
-				$post  = $this->db->get_row( $sql, ARRAY_A );
+				//$sql   = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d AND post_status IN ('publish','inherit') AND post_type IN (%s) AND post_password = ''", $post_id, implode( "','", $posttypes ) );
+				$sql    = "SELECT * FROM {$this->db->posts} WHERE ID = %d AND post_status IN ('publish','inherit') AND post_type IN (" . implode( ', ', array_fill( 0, count( $posttypes ), '%s' ) ) . ") AND post_password = ''";
+				$params = array( $post_id );
+				$params = array_merge( $params, $posttypes );
+				$sql    = call_user_func_array( array( $this->db, 'prepare' ), array_merge( array( $sql ), $params ) );
+				$posts  = $this->db->get_results( $sql, ARRAY_A );
+				$post   = $this->db->get_row( $sql, ARRAY_A );
 			} else {
 				$sql  = $this->db->prepare( "SELECT * FROM {$this->db->posts} WHERE ID = %d", $post_id );
 				$post = $this->db->get_row( $sql, ARRAY_A );
@@ -663,7 +671,7 @@ if ( ! class_exists( 'postindexermodel' ) ) {
 				return false;
 			}
 
-			$sql = $this->db->prepare( "SELECT BLOG_ID, ID FROM {$this->network_posts} WHERE DATE_ADD(post_date, INTERVAL %d {$period}) < CURRENT_DATE() LIMIT %d", $unit, PI_CRON_TIDY_DELETE_LIMIT );
+			$sql   = $this->db->prepare( "SELECT BLOG_ID, ID FROM {$this->network_posts} WHERE DATE_ADD(post_date, INTERVAL %d {$period}) < CURRENT_DATE() LIMIT %d", $unit, PI_CRON_TIDY_DELETE_LIMIT );
 			$posts = $this->db->get_results( $sql );
 
 			if ( ! empty( $posts ) ) {

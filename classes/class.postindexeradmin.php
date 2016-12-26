@@ -250,7 +250,8 @@ if ( ! class_exists( 'postindexeradmin' ) ) {
 						if ( is_array( $post_types ) ) {
 							array_map( 'trim', $post_types );
 
-							$live_post_types = get_post_types( '', 'objects' );
+							//$live_post_types = get_post_types( '', 'objects' );
+							$live_post_types = $this->model->get_active_post_types();
 							// Run a check to make sure no erronious post types have been passed
 							foreach ( $post_types as $key => $post_type ) {
 								if ( in_array( $post_type, array_keys( $live_post_types ) ) ) {
@@ -491,7 +492,6 @@ if ( ! class_exists( 'postindexeradmin' ) ) {
 								<?php
 
 								$indexingtypes = get_option( 'postindexer_posttypes', $this->global_post_types );
-
 								//$post_types = get_post_types( '' , 'objects' );
 								$post_types = $this->model->get_active_post_types();
 
