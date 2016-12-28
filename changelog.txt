@@ -1,4 +1,4 @@
-3.0.6.3
+3.0.6.4
 ------------------
 - Fix: Custom post type doesn't get indexed properly
 
