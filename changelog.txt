@@ -1,5 +1,9 @@
 3.0.6.3
 ------------------
+- Fix: Custom post type doesn't get indexed properly
+
+3.0.6.3
+------------------
 - Fixed SQL error when cleaning old posts
 
 3.0.6.2
