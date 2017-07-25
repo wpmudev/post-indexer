@@ -2199,20 +2199,26 @@ class Network_Query {
 		if ( !empty($q['s']) ) {
 			// added slashes screw with quote grouping when done early, so done later
 			$q['s'] = stripslashes($q['s']);
-			$q['search_terms'] = array();
-			if ( !empty($q['sentence']) ) {
-				$q['search_terms'][] = $q['s'];
-			} else {
-				preg_match_all('/".*?("|$)|((?<=[\r\n\t ",+])|^)[^\r\n\t ",+]+/', $q['s'], $matches);
-				foreach ( $matches[0] as $match ) {
-					$q['search_terms'][] = trim( $match, "\"'\n\r " );
+			$q['search_terms_count'] = 1;
+			$q['search_terms'] = array( $q['s'] );
+			if ( empty($q['sentence']) && preg_match_all('/".*?("|$)|((?<=[\r\n\t ",+])|^)[^\r\n\t ",+]+/', $q['s'], $matches) ) {
+				$q['search_terms_count'] = count( $matches[0] );
+				if ( $q['search_terms_count'] <= 9 ) {
+					$q['search_terms'] = array();
+					foreach ( $matches[0] as $match ) {
+						$q['search_terms'][] = trim( $match, "\"'\n\r " );
+					}
 				}
 			}
 			$n = !empty($q['exact']) ? '' : '%';
 			$searchand = '';
+			$q['search_orderby_title'] = array();
 			foreach( (array) $q['search_terms'] as $term ) {
-				$term = esc_sql( like_escape( $term ) );
-				$search .= "{$searchand}(($this->network_posts.post_title LIKE '{$n}{$term}{$n}') OR ($this->network_posts.post_content LIKE '{$n}{$term}{$n}'))";
+				$term = $n . esc_sql( $wpdb->esc_like( $term ) ) . $n;
+				if ( $n ) {
+					$q['search_orderby_title'][] = "{$this->network_posts}.post_title LIKE '{$term}'";
+				}
+				$search .= "{$searchand}(($this->network_posts.post_title LIKE '{$term}') OR ($this->network_posts.post_content LIKE '{$term}'))";
 				$searchand = ' AND ';
 			}
 
@@ -2405,6 +2411,52 @@ class Network_Query {
 			else
 				$orderby .= " {$q['order']}";
 		}
+
+		if ( !empty($search) && !empty( $orderby ) ) {
+			if ( $q['search_terms_count'] > 1 ) {
+				$num_terms = count( $q['search_orderby_title'] );
+
+				// If the search terms contain negative queries, don't bother ordering by sentence matches.
+				$like = '';
+				if ( ! preg_match( '/(?:\s|^)\-/', $q['s'] ) ) {
+					$like = '%' . $wpdb->esc_like( $q['s'] ) . '%';
+				}
+
+				$search_orderby = '';
+
+				// sentence match in 'post_title'
+				if ( $like ) {
+					$search_orderby .= $wpdb->prepare( "WHEN {$this->network_posts}.post_title LIKE %s THEN 1 ", $like );
+				}
+
+				// sanity limit, sort as sentence when more than 6 terms
+				// (few searches are longer than 6 terms and most titles are not)
+				if ( $num_terms < 7 ) {
+					// all words in title
+					$search_orderby .= 'WHEN ' . implode( ' AND ', $q['search_orderby_title'] ) . ' THEN 2 ';
+					// any word in title, not needed when $num_terms == 1
+					if ( $num_terms > 1 )
+						$search_orderby .= 'WHEN ' . implode( ' OR ', $q['search_orderby_title'] ) . ' THEN 3 ';
+				}
+
+				// Sentence match in 'post_content' and 'post_excerpt'.
+				if ( $like ) {
+					$search_orderby .= $wpdb->prepare( "WHEN {$this->network_posts}.post_excerpt LIKE %s THEN 4 ", $like );
+					$search_orderby .= $wpdb->prepare( "WHEN {$this->network_posts}.post_content LIKE %s THEN 5 ", $like );
+				}
+
+				if ( $search_orderby ) {
+					$search_orderby = '(CASE ' . $search_orderby . 'ELSE 6 END)';
+				}
+			} else {
+				// single word or sentence search
+				$search_orderby = reset( $q['search_orderby_title'] ) . ' DESC';
+			}
+
+			if ( $search_orderby )
+				$orderby = $orderby ? $search_orderby . ', ' . $orderby : $search_orderby;
+		}
+
 
 		if ( is_array( $post_type ) ) {
 			$post_type_cap = 'multiple_post_type';
@@ -3987,7 +4039,7 @@ class WP_Network_Meta_Query {
 				$meta_value = array_slice( $meta_value, 0, 2 );
 				$meta_compare_string = '%s AND %s';
 			} elseif ( 'LIKE' == substr( $meta_compare, -4 ) ) {
-				$meta_value = '%' . like_escape( $meta_value ) . '%';
+				$meta_value = '%' . $wpdb->esc_like( $meta_value ) . '%';
 				$meta_compare_string = '%s';
 			} else {
 				$meta_compare_string = '%s';
