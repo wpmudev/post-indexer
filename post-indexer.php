@@ -4,7 +4,7 @@ Plugin Name: Post Indexer
 Plugin URI: http://premium.wpmudev.org/project/post-indexer/
 Description: Indexes all posts across your network and brings them into one spot – a very powerful tool that you use as a base to display posts in different ways or to manage your network.
 Author: WPMU DEV
-Version: 3.0.6.4
+Version: 3.0.6.5-BETA-1
 Author URI: http://premium.wpmudev.org
 WDP ID: 30
 Network: true
