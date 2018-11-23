@@ -46,7 +46,7 @@ if(!class_exists('ProcessLocker')) {
                  * 
                  * @return type
                  */
-                private function is_locked() {
+                public function is_locked() {
                         $locked = get_transient($this->lockkey);
                         
                         // the transient is not set, no process is working on this key
