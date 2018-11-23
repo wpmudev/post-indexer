@@ -2321,6 +2321,20 @@ class Network_Query {
 			$whichauthor .= ' AND (' . implode(" $andor ", $_author_array) . ')';
 			unset($author_array, $_author_array);
 		}
+		
+		if ( '' == $whichauthor ) {
+
+			if ( isset( $q['author__in'] ) && ! empty( $q['author__in'] ) ) {
+				$author__in = implode( ',', wp_parse_id_list( $q['author__in'] ) );
+				$whichauthor .= " AND ($this->network_posts.post_author IN ({$author__in}) )";
+			}
+
+			if ( isset( $q['author__not_in'] ) && ! empty( $q['author__not_in'] ) ) {
+				$not__in = implode( ',', wp_parse_id_list( $q['author__not_in'] ) );
+				$whichauthor .= " AND ($this->network_posts.post_author NOT IN ({$not__in}) )";
+			}
+
+		}
 
 		// Author stuff for nice URLs
 
