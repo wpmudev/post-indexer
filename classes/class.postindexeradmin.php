@@ -1658,7 +1658,7 @@ if ( ! class_exists( 'postindexeradmin' ) ) {
 				  `post_type` varchar(20) default 'post',
 				  PRIMARY KEY  (`site_post_id`),
 				  KEY `post_type` (`post_type`)
-				) ENGINE=MyISAM  DEFAULT CHARSET=utf8;";
+				) ENGINE = InnoDB  DEFAULT CHARSET=utf8;";
 
 				$post_indexer_table2 = "CREATE TABLE IF NOT EXISTS `" . $wpdb->base_prefix . "term_counts` (
 		  `term_count_id` bigint(20) unsigned NOT NULL auto_increment,
@@ -1667,7 +1667,7 @@ if ( ! class_exists( 'postindexeradmin' ) ) {
 		  `term_count_updated` datetime NOT NULL default '0000-00-00 00:00:00',
 		  `term_count` bigint(20),
 		  PRIMARY KEY  (`term_count_id`)
-		) ENGINE=MyISAM  DEFAULT CHARSET=utf8;";
+		) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 
 				$post_indexer_table3 = "CREATE TABLE IF NOT EXISTS `{$wpdb->base_prefix}site_terms` (
 			                `term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -1678,14 +1678,14 @@ if ( ! class_exists( 'postindexeradmin' ) ) {
 			                PRIMARY KEY (`term_id`),
 			                UNIQUE KEY `slug` (`slug`),
 			                KEY `name` (`name`)
-			              ) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+			              ) ENGINE = InnoDB DEFAULT CHARSET=utf8;";
 
 				$post_indexer_table4 = "CREATE TABLE IF NOT EXISTS `{$wpdb->base_prefix}site_term_relationships` (
 				                `site_post_id` bigint(20) unsigned NOT NULL,
 				                `term_id` bigint(20) unsigned NOT NULL,
 				                KEY (`site_post_id`),
 				                KEY (`term_id`)
-				              ) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+				              ) ENGINE = InnoDB DEFAULT CHARSET=utf8;";
 				$post_indexer_table5 = "";
 
 				$wpdb->query( $post_indexer_table1 );
